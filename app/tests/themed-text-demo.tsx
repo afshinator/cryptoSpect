@@ -41,72 +41,74 @@ export default function ThemedTextDemoScreen() {
           <ThemedText type="subtitle" style={styles.sectionHeader}>
             Type Variants
           </ThemedText>
-          
+
           <DemoExample>
             <ThemedText type="xlarge">xlarge - Extra Large Text</ThemedText>
             <ThemedText {...propLabelProps} style={styles.propLabel}>
               type="xlarge"
             </ThemedText>
           </DemoExample>
-          
+
           <DemoExample>
             <ThemedText type="title">title - Title Text</ThemedText>
             <ThemedText {...propLabelProps} style={styles.propLabel}>
               type="title"
             </ThemedText>
           </DemoExample>
-          
+
           <DemoExample>
             <ThemedText type="subtitle">subtitle - Subtitle Text</ThemedText>
             <ThemedText {...propLabelProps} style={styles.propLabel}>
               type="subtitle"
             </ThemedText>
           </DemoExample>
-          
+
           <DemoExample>
             <ThemedText type="large">large - Large Text</ThemedText>
             <ThemedText {...propLabelProps} style={styles.propLabel}>
               type="large"
             </ThemedText>
           </DemoExample>
-          
+
           <DemoExample>
             <ThemedText type="default">default - Default Text</ThemedText>
             <ThemedText {...propLabelProps} style={styles.propLabel}>
               type="default"
             </ThemedText>
           </DemoExample>
-          
+
           <DemoExample>
             <ThemedText type="defaultSemiBold">defaultSemiBold - Semi Bold Text</ThemedText>
             <ThemedText {...propLabelProps} style={styles.propLabel}>
               type="defaultSemiBold"
             </ThemedText>
           </DemoExample>
-          
+
           <DemoExample>
             <ThemedText type="small">small - Small Text</ThemedText>
             <ThemedText {...propLabelProps} style={styles.propLabel}>
               type="small"
             </ThemedText>
           </DemoExample>
-          
+
           <DemoExample>
             <ThemedText type="xsmall">xsmall - Extra Small Text</ThemedText>
             <ThemedText {...propLabelProps} style={styles.propLabel}>
               type="xsmall"
             </ThemedText>
           </DemoExample>
-          
+
           <DemoExample>
             <ThemedText type="caption">caption - Caption Text</ThemedText>
             <ThemedText {...propLabelProps} style={styles.propLabel}>
               type="caption"
             </ThemedText>
           </DemoExample>
-          
+
           <DemoExample>
-            <ThemedText type="link">link - Link Text</ThemedText>
+            {/* FIX: Setting tabIndex: -1 to prevent this demo element from retaining focus 
+                and triggering the aria-hidden warning, as it likely renders as a focusable <a> tag on web. */}
+            <ThemedText type="link"  >link - Link Text</ThemedText>
             <ThemedText {...propLabelProps} style={styles.propLabel}>
               type="link"
             </ThemedText>
@@ -121,56 +123,56 @@ export default function ThemedTextDemoScreen() {
           <ThemedText type="subtitle" style={styles.sectionHeader}>
             Color Variants
           </ThemedText>
-          
+
           <DemoExample>
             <ThemedText colorVariant="text">text - Default Text Color</ThemedText>
             <ThemedText {...propLabelProps} style={styles.propLabel}>
               colorVariant="text"
             </ThemedText>
           </DemoExample>
-          
+
           <DemoExample>
             <ThemedText colorVariant="textAlt">textAlt - Alternative Text Color</ThemedText>
             <ThemedText {...propLabelProps} style={styles.propLabel}>
               colorVariant="textAlt"
             </ThemedText>
           </DemoExample>
-          
+
           <DemoExample>
             <ThemedText colorVariant="textSubtle">textSubtle - Subtle Text Color</ThemedText>
             <ThemedText {...propLabelProps} style={styles.propLabel}>
               colorVariant="textSubtle"
             </ThemedText>
           </DemoExample>
-          
+
           <DemoExample>
             <ThemedText colorVariant="tint">tint - Tint Color</ThemedText>
             <ThemedText {...propLabelProps} style={styles.propLabel}>
               colorVariant="tint"
             </ThemedText>
           </DemoExample>
-          
+
           <DemoExample>
             <ThemedText colorVariant="link">link - Link Color</ThemedText>
             <ThemedText {...propLabelProps} style={styles.propLabel}>
               colorVariant="link"
             </ThemedText>
           </DemoExample>
-          
+
           <DemoExample>
             <ThemedText colorVariant="success">success - Success Color</ThemedText>
             <ThemedText {...propLabelProps} style={styles.propLabel}>
               colorVariant="success"
             </ThemedText>
           </DemoExample>
-          
+
           <DemoExample>
             <ThemedText colorVariant="warning">warning - Warning Color</ThemedText>
             <ThemedText {...propLabelProps} style={styles.propLabel}>
               colorVariant="warning"
             </ThemedText>
           </DemoExample>
-          
+
           <DemoExample>
             <ThemedText colorVariant="error">error - Error Color</ThemedText>
             <ThemedText {...propLabelProps} style={styles.propLabel}>
@@ -187,7 +189,7 @@ export default function ThemedTextDemoScreen() {
           <ThemedText type="subtitle" style={styles.sectionHeader}>
             Custom Colors
           </ThemedText>
-          
+
           <DemoExample>
             <ThemedText lightColor="#FF6B6B" darkColor="#4ECDC4">
               Custom Light/Dark Colors
@@ -196,7 +198,7 @@ export default function ThemedTextDemoScreen() {
               lightColor="#FF6B6B" darkColor="#4ECDC4"
             </ThemedText>
           </DemoExample>
-          
+
           <DemoExample>
             <ThemedText lightColor="#9B59B6">
               Custom Light Color Only
@@ -205,7 +207,7 @@ export default function ThemedTextDemoScreen() {
               lightColor="#9B59B6"
             </ThemedText>
           </DemoExample>
-          
+
           <DemoExample>
             <ThemedText darkColor="#F39C12">
               Custom Dark Color Only
@@ -224,7 +226,7 @@ export default function ThemedTextDemoScreen() {
           <ThemedText type="subtitle" style={styles.sectionHeader}>
             Extra Font Scaling (fontScaleExtra)
           </ThemedText>
-          
+
           <DemoExample>
             <ThemedText type="default" fontScaleExtra={1.5}>
               Scaled by 1.5x (Normal Font Size)
@@ -233,7 +235,7 @@ export default function ThemedTextDemoScreen() {
               fontScaleExtra={'{1.5}'}
             </ThemedText>
           </DemoExample>
-          
+
           <DemoExample>
             <ThemedText type="title" fontScaleExtra={0.75} colorVariant="tint">
               Scaled by 0.75x (Shrunk Title)
@@ -242,7 +244,7 @@ export default function ThemedTextDemoScreen() {
               type="title" fontScaleExtra={'{0.75}'}
             </ThemedText>
           </DemoExample>
-          
+
           <DemoExample>
             <ThemedText type="large" fontScaleExtra={2.0} colorVariant="error">
               Scaled by 2.0x (Large Text)
@@ -261,11 +263,11 @@ export default function ThemedTextDemoScreen() {
           <ThemedText type="subtitle" style={styles.sectionHeader}>
             Font Family Overrides
           </ThemedText>
-          
+
           {/* Example 1: Applying a Serif Font Family */}
           <DemoExample>
-            <ThemedText 
-              type="default" 
+            <ThemedText
+              type="default"
               style={{ fontFamily: Fonts.serif }}
             >
               Serif Font Family
@@ -274,11 +276,11 @@ export default function ThemedTextDemoScreen() {
               {'style={{ fontFamily: Fonts.serif }}'}
             </ThemedText>
           </DemoExample>
-          
+
           {/* Example 2: Applying a Monospaced Font Family */}
           <DemoExample>
-            <ThemedText 
-              type="small" 
+            <ThemedText
+              type="small"
               style={{ fontFamily: Fonts.mono }}
             >
               Monospaced Font Family
@@ -287,11 +289,11 @@ export default function ThemedTextDemoScreen() {
               {'style={{ fontFamily: Fonts.mono }}'}
             </ThemedText>
           </DemoExample>
-          
+
           {/* Example 3: Applying a Rounded Font Family */}
           <DemoExample>
-            <ThemedText 
-              type="subtitle" 
+            <ThemedText
+              type="subtitle"
               style={{ fontFamily: Fonts.rounded }}
             >
               Rounded Font Family
@@ -303,8 +305,8 @@ export default function ThemedTextDemoScreen() {
 
           {/* Example 4: Sans-serif override */}
           <DemoExample>
-            <ThemedText 
-              type="defaultSemiBold" 
+            <ThemedText
+              type="defaultSemiBold"
               colorVariant="link"
               style={{ fontFamily: Fonts.sans }}
             >
@@ -315,16 +317,16 @@ export default function ThemedTextDemoScreen() {
             </ThemedText>
           </DemoExample>
         </ThemedView>
-        
+
         {/* DIVIDER */}
         <ThemedView style={styles.divider} />
-        
+
         {/* Type + Color Combinations */}
         <ThemedView style={styles.section}>
           <ThemedText type="subtitle" style={styles.sectionHeader}>
             Type + Color Combinations
           </ThemedText>
-          
+
           <DemoExample>
             <ThemedText type="title" colorVariant="textAlt">
               title + textAlt
@@ -333,7 +335,7 @@ export default function ThemedTextDemoScreen() {
               type="title" colorVariant="textAlt"
             </ThemedText>
           </DemoExample>
-          
+
           <DemoExample>
             <ThemedText type="subtitle" colorVariant="success">
               subtitle + success
@@ -342,7 +344,7 @@ export default function ThemedTextDemoScreen() {
               type="subtitle" colorVariant="success"
             </ThemedText>
           </DemoExample>
-          
+
           <DemoExample>
             <ThemedText type="defaultSemiBold" colorVariant="error">
               defaultSemiBold + error
@@ -351,7 +353,7 @@ export default function ThemedTextDemoScreen() {
               type="defaultSemiBold" colorVariant="error"
             </ThemedText>
           </DemoExample>
-          
+
           <DemoExample>
             <ThemedText type="link" colorVariant="textAlt">
               link type (forces link color)
@@ -370,7 +372,7 @@ export default function ThemedTextDemoScreen() {
           <ThemedText type="subtitle" style={styles.sectionHeader}>
             Custom Styles
           </ThemedText>
-          
+
           <DemoExample>
             <ThemedText style={{ marginTop: 10, marginBottom: 10 }}>
               With marginTop and marginBottom
@@ -379,7 +381,7 @@ export default function ThemedTextDemoScreen() {
               {'style={{ marginTop: 10, marginBottom: 10 }}'}
             </ThemedText>
           </DemoExample>
-          
+
           <DemoExample>
             <ThemedText style={{ textAlign: 'center', fontWeight: 'bold' }}>
               Centered and Bold
@@ -388,13 +390,13 @@ export default function ThemedTextDemoScreen() {
               {'style={{ textAlign: \'center\', fontWeight: \'bold\' }}'}
             </ThemedText>
           </DemoExample>
-          
+
           <DemoExample>
-            <ThemedText 
-              type="title" 
-              style={{ 
+            <ThemedText
+              type="title"
+              style={{
                 textDecorationLine: 'underline',
-                letterSpacing: 2 
+                letterSpacing: 2
               }}
             >
               Underlined with Letter Spacing
@@ -413,7 +415,7 @@ export default function ThemedTextDemoScreen() {
           <ThemedText type="subtitle" style={styles.sectionHeader}>
             Complex Examples
           </ThemedText>
-          
+
           <ThemedView style={styles.example}>
             <ThemedText>
               This is a paragraph with{' '}
@@ -428,7 +430,7 @@ export default function ThemedTextDemoScreen() {
               Nested: default + defaultSemiBold colorVariant="textAlt" + link
             </ThemedText>
           </ThemedView>
-          
+
           {/* Using DemoExample inside complex section for structured row examples */}
           <DemoExample style={{ flexDirection: 'column', alignItems: 'flex-start' }}>
             <ThemedText type="title" colorVariant="success" style={{ marginBottom: 8 }}>
@@ -471,7 +473,7 @@ const styles = StyleSheet.create({
     marginBottom: 24,
   },
   section: {
-    marginBottom: 32,
+    // marginBottom: 32,
   },
   sectionHeader: {
     marginBottom: 16,
