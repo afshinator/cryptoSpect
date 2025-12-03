@@ -3,14 +3,15 @@
 // Run with: npx ts-node scripts/test-current-volatility.ts
 
 import { fetchAndLogCurrentVolatility } from '../features/currentVolatility/api';
+import { ERR, log, LOG } from '../utils/log';
 
 async function main() {
-  console.log('Fetching current volatility data...\n');
+  log('Fetching current volatility data...\n', LOG);
   
   try {
     await fetchAndLogCurrentVolatility();
   } catch (error: any) {
-    console.error('Error:', error.message);
+    log(`Error: ${error.message}`, ERR);
     process.exit(1);
   }
 }
