@@ -2,10 +2,10 @@
 // Central registry for all API endpoints used by the app
 
 import {
-  COINGECKO_GLOBAL_DATA_ENDPOINT,
-  COINGECKO_COINS_MARKETS_ENDPOINT,
-  COINGECKO_SEARCH_ENDPOINT,
   COINGECKO_COIN_BY_ID_BASE_ENDPOINT,
+  COINGECKO_COINS_MARKETS_ENDPOINT,
+  COINGECKO_GLOBAL_DATA_ENDPOINT,
+  COINGECKO_SEARCH_ENDPOINT,
 } from "./coinGecko";
 
 /**
@@ -70,6 +70,17 @@ export const ENDPOINTS: Record<string, EndpointConfig> = {
     id: 'coingecko-coin-by-id',
     url: COINGECKO_COIN_BY_ID_BASE_ENDPOINT,
     name: 'CoinGecko Coin by ID',
+    enabled: true,
+    stats: {
+      callCount: 0,
+      errorCount: 0,
+    },
+  },
+  // Crypto Proxy endpoints
+  CRYPTO_PROXY_CURRENT_VOLATILITY: {
+    id: 'crypto-proxy-current-volatility',
+    url: 'https://crypto-proxy-bice.vercel.app/api/volatility',
+    name: 'Crypto Proxy Current Volatility',
     enabled: true,
     stats: {
       callCount: 0,
