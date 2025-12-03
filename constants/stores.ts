@@ -1,5 +1,6 @@
 // constants/stores.ts
 
+import { CurrentVolatilityResponse } from '@/features/currentVolatility/api';
 import { DEFAULT_CURRENCY } from './currency';
 
 // AsyncStorage keys
@@ -12,5 +13,10 @@ export const DEFAULT_PREFS = {
   lightDarkMode: 'system' as const,
   currency: DEFAULT_CURRENCY,
   compactMode: false,
+} as const;
+
+// Default latest values
+export const DEFAULT_LATEST = {
+  currentVolatilityData: null as CurrentVolatilityResponse | null,
 } as const;
 
