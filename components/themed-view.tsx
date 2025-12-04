@@ -7,10 +7,16 @@ import { useThemeColor } from '@/hooks/use-theme-color';
 export type ThemedViewProps = ViewProps & {
   lightColor?: string;
   darkColor?: string;
+  /** Shortcut prop: sets both lightColor and darkColor to "transparent" */
+  transparent?: boolean;
 };
 
-export function ThemedView({ style, lightColor, darkColor, ...otherProps }: ThemedViewProps) {
-  const backgroundColor = useThemeColor({ light: lightColor, dark: darkColor }, 'background');
+export function ThemedView({ style, lightColor, darkColor, transparent, ...otherProps }: ThemedViewProps) {
+  // If transparent prop is true, override lightColor and darkColor
+  const finalLightColor = transparent ? 'transparent' : lightColor;
+  const finalDarkColor = transparent ? 'transparent' : darkColor;
+  
+  const backgroundColor = useThemeColor({ light: finalLightColor, dark: finalDarkColor }, 'background');
 
   // Combine internal style and external style prop into one array
   const allStyles = [
