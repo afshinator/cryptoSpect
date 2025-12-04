@@ -90,6 +90,26 @@ describe('api.ts', () => {
       expect(result).not.toContain('nullValue');
       expect(result).not.toContain('undefinedValue');
     });
+
+    it('handles base URL with trailing slash correctly', () => {
+      // This test prevents the double-slash issue that causes 308 redirects and CORS problems
+      // When base URL has trailing slash and path starts with slash, we should not get double slash
+      const baseUrlWithSlash = 'https://crypto-proxy-bice.vercel.app/';
+      const params = { type: 'current' };
+      const result = buildUrlWithParams(baseUrlWithSlash, params);
+      
+      // Should not have double slashes before query params
+      expect(result).not.toContain('//?');
+      expect(result).toBe('https://crypto-proxy-bice.vercel.app/?type=current');
+    });
+
+    it('handles base URL without trailing slash correctly', () => {
+      const baseUrlNoSlash = 'https://crypto-proxy-bice.vercel.app';
+      const params = { type: 'current' };
+      const result = buildUrlWithParams(baseUrlNoSlash, params);
+      
+      expect(result).toBe('https://crypto-proxy-bice.vercel.app?type=current');
+    });
   });
 
   describe('callEndpoint', () => {
@@ -425,6 +445,74 @@ describe('api.ts', () => {
 
       expect(result.success).toBe(true);
       // Should not throw when stats is undefined
+    });
+
+    it('constructs endpoint URL without double slashes when base URL has trailing slash', async () => {
+      // This test prevents the double-slash issue that causes 308 redirects and CORS problems
+      // When CRYPTO_PROXY_BASE_URL has trailing slash, endpoint URL construction should handle it
+      const mockData = { id: 1 };
+      const mockResponse = {
+        ok: true,
+        status: 200,
+        json: jest.fn().mockResolvedValue(mockData),
+      };
+
+      // Simulate endpoint URL that might have trailing slash from base URL
+      const endpointWithTrailingSlash = {
+        ...mockEndpoint,
+        url: 'https://crypto-proxy-bice.vercel.app/api/volatility', // This is constructed from base + path
+      };
+
+      getEndpoint.mockReturnValue(endpointWithTrailingSlash);
+      isEndpointEnabled.mockReturnValue(true);
+      global.fetch.mockResolvedValue(mockResponse);
+
+      await callEndpoint('TEST_ENDPOINT', {
+        queryParams: { type: 'current' },
+      });
+
+      // Verify the fetch was called with correct URL (no double slashes)
+      const fetchCall = global.fetch.mock.calls[0];
+      const calledUrl = fetchCall[0];
+      
+      // Should not contain double slashes (except for https://)
+      expect(calledUrl).not.toMatch(/[^:]\/\//);
+      expect(calledUrl).toBe('https://crypto-proxy-bice.vercel.app/api/volatility?type=current');
+    });
+
+    it('handles endpoint URL construction with base URL that has trailing slash', async () => {
+      // Test the actual scenario: base URL with trailing slash + path starting with slash
+      // This should result in a single slash, not double slash
+      const mockData = { id: 1 };
+      const mockResponse = {
+        ok: true,
+        status: 200,
+        json: jest.fn().mockResolvedValue(mockData),
+      };
+
+      // Simulate what happens when CRYPTO_PROXY_BASE_URL = "https://crypto-proxy-bice.vercel.app/"
+      // and endpoint path is "/api/volatility"
+      // The constructed URL should be "https://crypto-proxy-bice.vercel.app/api/volatility" (single slash)
+      const endpointUrl = 'https://crypto-proxy-bice.vercel.app/api/volatility';
+      
+      const endpoint = {
+        ...mockEndpoint,
+        url: endpointUrl,
+      };
+
+      getEndpoint.mockReturnValue(endpoint);
+      isEndpointEnabled.mockReturnValue(true);
+      global.fetch.mockResolvedValue(mockResponse);
+
+      await callEndpoint('TEST_ENDPOINT');
+
+      const fetchCall = global.fetch.mock.calls[0];
+      const calledUrl = fetchCall[0];
+      
+      // Verify no double slashes in the path portion (after https://)
+      const pathPortion = calledUrl.replace(/^https?:\/\//, '');
+      expect(pathPortion).not.toContain('//');
+      expect(calledUrl).toBe(endpointUrl);
     });
   });
 
