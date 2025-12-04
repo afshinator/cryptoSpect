@@ -162,6 +162,102 @@ export default function BorderedSectionDemo() {
           </ThemedText>
         </BorderedSection>
 
+        {/* Border Types */}
+        <ThemedText type="subtitle" style={styles.sectionHeader}>
+          Border Types
+        </ThemedText>
+        <BorderedSection borderType="default">
+          <ThemedText type="defaultSemiBold">Default Border</ThemedText>
+          <ThemedText type="default" style={styles.marginTop}>
+            Standard single border (1px width).
+          </ThemedText>
+          <ThemedText type="small" colorVariant="textSubtle" style={styles.marginTop}>
+            borderType="default"
+          </ThemedText>
+        </BorderedSection>
+
+        <BorderedSection borderType="double">
+          <ThemedText type="defaultSemiBold">Double Border</ThemedText>
+          <ThemedText type="default" style={styles.marginTop}>
+            Two parallel borders creating a double border effect.
+          </ThemedText>
+          <ThemedText type="small" colorVariant="textSubtle" style={styles.marginTop}>
+            borderType="double"
+          </ThemedText>
+        </BorderedSection>
+
+        <BorderedSection borderType="dashed">
+          <ThemedText type="defaultSemiBold">Dashed Border</ThemedText>
+          <ThemedText type="default" style={styles.marginTop}>
+            Dashed border style for a more decorative look.
+          </ThemedText>
+          <ThemedText type="small" colorVariant="textSubtle" style={styles.marginTop}>
+            borderType="dashed"
+          </ThemedText>
+        </BorderedSection>
+
+        <BorderedSection borderType="thick">
+          <ThemedText type="defaultSemiBold">Thick Border</ThemedText>
+          <ThemedText type="default" style={styles.marginTop}>
+            Thicker border (3px) for more emphasis.
+          </ThemedText>
+          <ThemedText type="small" colorVariant="textSubtle" style={styles.marginTop}>
+            borderType="thick"
+          </ThemedText>
+        </BorderedSection>
+
+        {/* Border Types with Emojis */}
+        <ThemedText type="subtitle" style={styles.sectionHeader}>
+          Border Types with Background Emojis
+        </ThemedText>
+        <BorderedSection 
+          borderType="double" 
+          backgroundEmoji="🎨"
+          emojiPlacement="upperRight"
+          emojiSize={80}
+          emojiOpacity={0.15}
+        >
+          <ThemedText type="defaultSemiBold">Double Border with Emoji</ThemedText>
+          <ThemedText type="default" style={styles.marginTop}>
+            Double border combined with a background emoji in the upper right.
+          </ThemedText>
+          <ThemedText type="small" colorVariant="textSubtle" style={styles.marginTop}>
+            borderType="double", emojiSize=80px, upperRight
+          </ThemedText>
+        </BorderedSection>
+
+        <BorderedSection 
+          borderType="dashed" 
+          backgroundEmoji="✨"
+          emojiPlacement="center"
+          emojiSize={100}
+          emojiOpacity={0.12}
+        >
+          <ThemedText type="defaultSemiBold">Dashed Border with Center Emoji</ThemedText>
+          <ThemedText type="default" style={styles.marginTop}>
+            Dashed border with a centered background emoji.
+          </ThemedText>
+          <ThemedText type="small" colorVariant="textSubtle" style={styles.marginTop}>
+            borderType="dashed", emojiSize=100px, center
+          </ThemedText>
+        </BorderedSection>
+
+        <BorderedSection 
+          borderType="thick" 
+          backgroundEmoji="🔥"
+          emojiPlacement="upperRight"
+          emojiSize={70}
+          emojiOpacity={0.18}
+        >
+          <ThemedText type="defaultSemiBold">Thick Border with Upper Right Emoji</ThemedText>
+          <ThemedText type="default" style={styles.marginTop}>
+            Thick border with a smaller emoji in the upper right corner.
+          </ThemedText>
+          <ThemedText type="small" colorVariant="textSubtle" style={styles.marginTop}>
+            borderType="thick", emojiSize=70px, upperRight
+          </ThemedText>
+        </BorderedSection>
+
         {/* Different Opacity Levels */}
         <ThemedText type="subtitle" style={styles.sectionHeader}>
           Different Opacity Levels

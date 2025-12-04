@@ -6,6 +6,7 @@ import { useThemeColor } from '@/hooks/use-theme-color';
 import { StyleSheet, Text, View, ViewStyle } from 'react-native';
 
 export type EmojiPlacement = 'center' | 'upperRight';
+export type BorderType = 'default' | 'double' | 'dashed' | 'thick';
 
 export interface BorderedSectionProps extends Omit<ThemedViewProps, 'style'> {
   /** Padding inside the section (default: 16) */
@@ -14,6 +15,8 @@ export interface BorderedSectionProps extends Omit<ThemedViewProps, 'style'> {
   backgroundColor?: { light?: string; dark?: string };
   /** Custom border color (light and dark). Defaults to theme border color */
   borderColor?: { light?: string; dark?: string };
+  /** Border type/style (default: 'default') */
+  borderType?: BorderType;
   /** Margin bottom (default: 24) */
   marginBottom?: number;
   /** Optional emoji to display in the background, prominently large, under all content */
@@ -36,6 +39,7 @@ export function BorderedSection({
   padding = 16,
   backgroundColor,
   borderColor,
+  borderType = 'default',
   marginBottom = 24,
   backgroundEmoji,
   emojiOpacity = 0.1,
@@ -52,11 +56,10 @@ export function BorderedSection({
     ? useThemeColor(borderColor, 'border')
     : useThemeColor({}, 'border');
 
-  const sectionStyle: ViewStyle = {
+  // Base style for all border types
+  const baseStyle: ViewStyle = {
     padding,
     borderRadius: 8,
-    borderWidth: 1,
-    borderColor: border,
     marginBottom,
     overflow: 'hidden', // Ensure emoji doesn't overflow rounded corners
   };
@@ -65,6 +68,76 @@ export function BorderedSection({
   const emojiContainerStyle = emojiPlacement === 'upperRight' 
     ? styles.emojiContainerUpperRight 
     : styles.emojiContainerCenter;
+
+  // For double border, we need to wrap in an additional view
+  if (borderType === 'double') {
+    const outerBorderStyle: ViewStyle = {
+      borderWidth: 1,
+      borderColor: border,
+      borderRadius: 8,
+      marginBottom,
+      padding: 2, // Gap between borders
+    };
+
+    const innerBorderStyle: ViewStyle = {
+      ...baseStyle,
+      borderWidth: 1,
+      borderColor: border,
+      marginBottom: 0, // Reset margin since parent handles it
+    };
+
+    return (
+      <ThemedView
+        style={[outerBorderStyle, style]}
+        {...otherProps}
+      >
+        <ThemedView
+          style={innerBorderStyle}
+          lightColor={lightColor || backgroundColor?.light}
+          darkColor={darkColor || backgroundColor?.dark}
+        >
+          {backgroundEmoji && (
+            <View style={emojiContainerStyle} pointerEvents="none">
+              <Text style={[styles.emoji, { opacity: emojiOpacity, fontSize: emojiSize }]}>
+                {backgroundEmoji}
+              </Text>
+            </View>
+          )}
+          <View style={styles.contentContainer}>
+            {children}
+          </View>
+        </ThemedView>
+      </ThemedView>
+    );
+  }
+
+  // Determine border style based on borderType for non-double borders
+  const getBorderStyle = (): ViewStyle => {
+    switch (borderType) {
+      case 'dashed':
+        return {
+          ...baseStyle,
+          borderWidth: 1,
+          borderColor: border,
+          borderStyle: 'dashed',
+        };
+      case 'thick':
+        return {
+          ...baseStyle,
+          borderWidth: 3,
+          borderColor: border,
+        };
+      case 'default':
+      default:
+        return {
+          ...baseStyle,
+          borderWidth: 1,
+          borderColor: border,
+        };
+    }
+  };
+
+  const sectionStyle: ViewStyle = getBorderStyle();
 
   return (
     <ThemedView
