@@ -2,7 +2,7 @@
 // Functions for fetching current volatility data from Crypto Proxy API
 
 import { callEndpoint } from '../../utils/api';
-import { log, LOG, ERR } from '../../utils/log';
+import { ERR, log, LOG } from '../../utils/log';
 
 /**
  * Response type for current volatility endpoint
