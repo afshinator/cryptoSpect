@@ -2,6 +2,7 @@ import { Image } from 'expo-image';
 import { useEffect, useRef } from 'react';
 import { Platform, StyleSheet } from 'react-native';
 
+import { CurrentDominanceWidget } from '@/components/current-dominance-widget';
 import { CurrentVolatilityWidget } from '@/components/CurrentVolatilityWidget';
 import ParallaxScrollView from '@/components/parallax-scroll-view';
 import { ThemedText } from '@/components/themed-text';
@@ -88,6 +89,15 @@ export default function HomeScreen() {
         <CurrentVolatilityWidget 
           data={volatilityWidgetData}
           mode={compactMode ? 'compact' : 'normal'}
+          percentagePrecision={1}
+        />
+      )}
+
+      {currentDominanceData && (
+        <CurrentDominanceWidget 
+          data={currentDominanceData}
+          mode={compactMode ? 'compact' : 'normal'}
+          percentagePrecision={1}
         />
       )}
 

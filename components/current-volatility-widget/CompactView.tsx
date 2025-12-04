@@ -5,12 +5,11 @@ import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { Colors, Spacing } from '@/constants/theme';
 import { StyleSheet } from 'react-native';
-import { VOLATILITY_DECIMAL_PLACES } from './constants';
 import type { CompactViewProps } from './types';
 import { formatTimestamp } from './utils';
 import { VolatilityBadge } from './VolatilityBadge';
 
-export function CompactView({ data, contextEmoji }: CompactViewProps) {
+export function CompactView({ data, contextEmoji, percentagePrecision }: CompactViewProps) {
   return (
     <ThemedView
       style={styles.compactContainer}
@@ -23,7 +22,7 @@ export function CompactView({ data, contextEmoji }: CompactViewProps) {
               1h:
             </ThemedText>
             <ThemedText type="title" style={styles.compactValueTitle}>
-              {data.volatility1h.toFixed(VOLATILITY_DECIMAL_PLACES)}%
+              {data.volatility1h.toFixed(percentagePrecision)}%
             </ThemedText>
           </ThemedView>
           <VolatilityBadge level={data.level1h} compact />
@@ -39,7 +38,7 @@ export function CompactView({ data, contextEmoji }: CompactViewProps) {
               24h:
             </ThemedText>
             <ThemedText type="title" style={styles.compactValueTitle}>
-              {data.volatility24h.toFixed(VOLATILITY_DECIMAL_PLACES)}%
+              {data.volatility24h.toFixed(percentagePrecision)}%
             </ThemedText>
           </ThemedView>
           <VolatilityBadge level={data.level24h} compact />
@@ -52,14 +51,30 @@ export function CompactView({ data, contextEmoji }: CompactViewProps) {
         ) : null}
       </ThemedView>
 
-      <ThemedText
-        type="xsmall"
-        lightColor={Colors.light.textSubtle}
-        darkColor={Colors.dark.textSubtle}
-        style={styles.compactLastUpdated}
-      >
-        Last updated: {formatTimestamp(data.lastUpdated)}
-      </ThemedText>
+      <ThemedView style={styles.compactLastUpdated}>
+        <ThemedText
+          type="xsmall"
+          lightColor={Colors.light.textSubtle}
+          darkColor={Colors.dark.textSubtle}
+          style={styles.compactLabelBold}
+        >
+          Market Volatility
+        </ThemedText>
+        <ThemedText
+          type="xsmall"
+          lightColor={Colors.light.textSubtle}
+          darkColor={Colors.dark.textSubtle}
+        >
+          {' • Updated: '}
+        </ThemedText>
+        <ThemedText
+          type="xsmall"
+          lightColor={Colors.light.textSubtle}
+          darkColor={Colors.dark.textSubtle}
+        >
+          {formatTimestamp(data.lastUpdated)}
+        </ThemedText>
+      </ThemedView>
     </ThemedView>
   );
 }
@@ -97,7 +112,12 @@ const styles = StyleSheet.create({
     marginLeft: Spacing.xs,
   },
   compactLastUpdated: {
-    textAlign: 'center',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  compactLabelBold: {
+    fontWeight: 'bold',
   },
 });
 

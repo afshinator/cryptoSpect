@@ -5,13 +5,13 @@ import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { BorderRadius, Colors, Spacing } from '@/constants/theme';
 import { StyleSheet } from 'react-native';
-import { DIVIDER_WIDTH, VOLATILITY_DECIMAL_PLACES } from './constants';
+import { DIVIDER_WIDTH } from './constants';
 import type { NormalViewProps } from './types';
 import { formatTimestamp } from './utils';
 import { VolatilityBadge } from './VolatilityBadge';
 import { VolatilityScale } from './VolatilityScale';
 
-export function NormalView({ data, contextEmoji }: NormalViewProps) {
+export function NormalView({ data, contextEmoji, percentagePrecision }: NormalViewProps) {
   return (
     <ThemedView transparent>
       <ThemedView style={styles.normalHeader} transparent>
@@ -36,7 +36,7 @@ export function NormalView({ data, contextEmoji }: NormalViewProps) {
             1-Hour
           </ThemedText>
           <ThemedText type="title" style={styles.normalPercentage}>
-            {data.volatility1h.toFixed(VOLATILITY_DECIMAL_PLACES)}%
+            {data.volatility1h.toFixed(percentagePrecision)}%
           </ThemedText>
           <VolatilityBadge level={data.level1h} />
         </ThemedView>
@@ -59,7 +59,7 @@ export function NormalView({ data, contextEmoji }: NormalViewProps) {
             24-Hour
           </ThemedText>
           <ThemedText type="title" style={styles.normalPercentage}>
-            {data.volatility24h.toFixed(VOLATILITY_DECIMAL_PLACES)}%
+            {data.volatility24h.toFixed(percentagePrecision)}%
           </ThemedText>
           <VolatilityBadge level={data.level24h} />
         </ThemedView>
@@ -79,7 +79,7 @@ export function NormalView({ data, contextEmoji }: NormalViewProps) {
         darkColor={Colors.dark.textSubtle}
         style={styles.normalLastUpdated}
       >
-        Last updated: {formatTimestamp(data.lastUpdated)}
+        Updated: {formatTimestamp(data.lastUpdated)}
       </ThemedText>
     </ThemedView>
   );
@@ -120,7 +120,7 @@ const styles = StyleSheet.create({
   },
   normalLastUpdated: {
     textAlign: 'center',
-    marginTop: Spacing.md,
+    // marginTop: Spacing.md,
   },
   scaleContainer: {
     marginBottom: Spacing.md,

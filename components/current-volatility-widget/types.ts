@@ -19,6 +19,8 @@ export interface CurrentVolatilityWidgetProps {
   onPress?: () => void;
   /** Placement of the background emoji (default: 'upperRight') */
   emojiPlacement?: 'center' | 'upperRight' | 'upperLeft';
+  /** Number of decimal places for percentage display (default: 1 for home screen) */
+  percentagePrecision?: number;
 }
 
 export interface VolatilityScaleProps {
@@ -35,10 +37,12 @@ export interface VolatilityBadgeProps {
 export interface CompactViewProps {
   data: VolatilityData;
   contextEmoji: string;
+  percentagePrecision: number;
 }
 
 export interface NormalViewProps {
   data: VolatilityData;
   contextEmoji: string;
+  percentagePrecision: number;
 }
 

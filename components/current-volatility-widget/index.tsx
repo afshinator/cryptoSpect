@@ -4,6 +4,7 @@
 import { BorderedSection } from '@/components/bordered-section';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
+import { HOME_SCREEN_PERCENTAGE_PRECISION } from '@/constants/displayPrecision';
 import { Colors, Spacing } from '@/constants/theme';
 import { useState } from 'react';
 import { StyleSheet, TouchableOpacity } from 'react-native';
@@ -22,6 +23,7 @@ export function CurrentVolatilityWidget({
   mode = 'normal',
   onPress,
   emojiPlacement = 'upperLeft',
+  percentagePrecision = HOME_SCREEN_PERCENTAGE_PRECISION,
 }: CurrentVolatilityWidgetProps) {
   const [showTooltip, setShowTooltip] = useState(false);
 
@@ -56,9 +58,9 @@ export function CurrentVolatilityWidget({
         emojiSize={30}
       >
         {mode === 'compact' ? (
-          <CompactView data={data} contextEmoji={contextEmoji} />
+          <CompactView data={data} contextEmoji={contextEmoji} percentagePrecision={percentagePrecision} />
         ) : (
-          <NormalView data={data} contextEmoji={contextEmoji} />
+          <NormalView data={data} contextEmoji={contextEmoji} percentagePrecision={percentagePrecision} />
         )}
 
         {/* Tooltip */}
