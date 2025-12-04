@@ -69,16 +69,20 @@ export default function HomeScreen() {
   }, [currentVolatilityData, currentDominanceData]); // Removed setters - they're stable references
   return (
     <ParallaxScrollView
-      headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
+      headerBackgroundColor={{ light: '#2789aa', dark: '#151d2c' }}
       headerImage={
         <Image
-          source={require('@/assets/images/partial-react-logo.png')}
-          style={styles.reactLogo}
+          source={require('@/assets/images/logo2.jpg')}
+          style={[
+            styles.headerImage,
+            Platform.OS === 'web' && styles.headerImageDesktop,
+          ]}
+          contentFit={Platform.OS === 'web' ? 'contain' : 'cover'}
         />
       }>
-      <ThemedView style={styles.titleContainer}>
+      {/* <ThemedView style={styles.titleContainer}>
         <ThemedText type="title">CryptoSpect</ThemedText>
-      </ThemedView>
+      </ThemedView> */}
 
       {volatilityWidgetData && (
         <CurrentVolatilityWidget 
@@ -155,6 +159,8 @@ export default function HomeScreen() {
   );
 }
 
+const HEADER_HEIGHT = Platform.OS === 'web' ? 200 : 175;
+
 const styles = StyleSheet.create({
   titleContainer: {
     flexDirection: 'row',
@@ -165,11 +171,17 @@ const styles = StyleSheet.create({
     gap: 8,
     marginBottom: 8,
   },
-  reactLogo: {
-    height: 178,
-    width: 290,
-    bottom: 0,
-    left: 0,
+  headerImage: {
+    width: '100%',
+    height: HEADER_HEIGHT,
     position: 'absolute',
+    top: 0,
+    left: 0,
+  },
+  headerImageDesktop: {
+    width: '100%',
+    height: '100%',
+    top: 0,
+    left: 0,
   },
 });

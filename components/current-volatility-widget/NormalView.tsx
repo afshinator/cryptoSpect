@@ -4,13 +4,12 @@
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { BorderRadius, Colors, Spacing } from '@/constants/theme';
-import { useThemeColor } from '@/hooks/use-theme-color';
 import { StyleSheet } from 'react-native';
 import { DIVIDER_WIDTH, VOLATILITY_DECIMAL_PLACES } from './constants';
+import type { NormalViewProps } from './types';
 import { formatTimestamp } from './utils';
 import { VolatilityBadge } from './VolatilityBadge';
 import { VolatilityScale } from './VolatilityScale';
-import type { NormalViewProps } from './types';
 
 export function NormalView({ data, contextEmoji }: NormalViewProps) {
   return (

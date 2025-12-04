@@ -61,7 +61,7 @@ export function CurrentVolatilityWidget({
         )}
 
         {/* Tooltip */}
-        {showTooltip && contextText && (
+        {showTooltip && contextText ? (
           <ThemedView
             lightColor={Colors.light.overlay}
             darkColor={Colors.dark.overlay}
@@ -76,7 +76,7 @@ export function CurrentVolatilityWidget({
               {contextText}
             </ThemedText>
           </ThemedView>
-        )}
+        ) : null}
       </BorderedSection>
     </TouchableOpacity>
   );

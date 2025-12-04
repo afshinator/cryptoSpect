@@ -4,7 +4,14 @@
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { BorderRadius, Colors, Spacing } from '@/constants/theme';
+import { useEffect } from 'react';
 import { StyleSheet } from 'react-native';
+import Animated, {
+  useAnimatedStyle,
+  useSharedValue,
+  withRepeat,
+  withTiming,
+} from 'react-native-reanimated';
 import { BADGE_OPACITY_HEX, SCALE_1H, SCALE_24H, SCALE_BAR_HEIGHT } from './constants';
 import type { VolatilityScaleProps } from './types';
 
@@ -14,6 +21,39 @@ export function VolatilityScale({ timeframe, value }: VolatilityScaleProps) {
 
   // Calculate position percentage (capped at 100%)
   const position = Math.min((value / maxValue) * 100, 100);
+
+  // Animation values for pulsing effect
+  const pulseScale = useSharedValue(1);
+  const glowOpacity = useSharedValue(0.5);
+
+  useEffect(() => {
+    // Start pulsing animation - indicator scales up and down to make it stand out
+    pulseScale.value = withRepeat(
+      withTiming(1.4, { duration: 1200 }),
+      -1,
+      true
+    );
+    // Glow pulses with opacity for a subtle effect
+    glowOpacity.value = withRepeat(
+      withTiming(0.8, { duration: 1200 }),
+      -1,
+      true
+    );
+  }, []);
+
+  // Animated style for the indicator - scales to make it stand out
+  const animatedIndicatorStyle = useAnimatedStyle(() => {
+    return {
+      transform: [{ scale: pulseScale.value }],
+    };
+  });
+
+  // Animated style for the glow effect
+  const animatedGlowStyle = useAnimatedStyle(() => {
+    return {
+      opacity: glowOpacity.value,
+    };
+  });
 
   return (
     <ThemedView style={styles.scale} transparent>
@@ -53,11 +93,25 @@ export function VolatilityScale({ timeframe, value }: VolatilityScaleProps) {
         </ThemedView>
 
         {/* Position indicator */}
-        <ThemedView
-          lightColor={Colors.light.tint}
-          darkColor={Colors.dark.tint}
-          style={[styles.scaleIndicator, { left: `${position}%` }]}
-        />
+        <Animated.View
+          style={[
+            styles.scaleIndicator,
+            { left: `${position}%` },
+            animatedIndicatorStyle,
+          ]}>
+          <ThemedView
+            lightColor={Colors.light.tint}
+            darkColor={Colors.dark.tint}
+            style={styles.scaleIndicatorInner}
+          />
+          {/* Glow effect */}
+          <Animated.View
+            style={[
+              styles.scaleIndicatorGlow,
+              animatedGlowStyle,
+            ]}
+          />
+        </Animated.View>
       </ThemedView>
 
       {/* Labels */}
@@ -121,8 +175,24 @@ const styles = StyleSheet.create({
     top: -2,
     width: 3,
     height: SCALE_BAR_HEIGHT + 4,
-    borderRadius: BorderRadius.sm,
     marginLeft: -1.5,
+    alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: 10,
+  },
+  scaleIndicatorInner: {
+    width: 3,
+    height: SCALE_BAR_HEIGHT + 4,
+    borderRadius: BorderRadius.sm,
+    zIndex: 2,
+  },
+  scaleIndicatorGlow: {
+    position: 'absolute',
+    width: 7,
+    height: SCALE_BAR_HEIGHT + 8,
+    borderRadius: BorderRadius.sm,
+    backgroundColor: Colors.light.tint,
+    zIndex: 1,
   },
   scaleLabels: {
     flexDirection: 'row',
