@@ -3,6 +3,13 @@
 // Run with: npm test -- __tests__/currentVolatility.integration.test.js
 // Requires: EXPO_PUBLIC_BACKEND_BASE_URL environment variable to be set
 
+// Mock AsyncStorage for integration tests
+jest.mock('@react-native-async-storage/async-storage', () => ({
+  getItem: jest.fn(),
+  setItem: jest.fn(),
+  removeItem: jest.fn(),
+}));
+
 import {
   fetchCurrentVolatility,
   fetchAndLogCurrentVolatility,

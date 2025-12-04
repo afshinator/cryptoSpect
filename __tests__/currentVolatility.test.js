@@ -4,12 +4,17 @@ import {
   fetchCurrentVolatility,
   fetchAndLogCurrentVolatility,
 } from '../features/currentVolatility/api';
-import { callEndpoint } from '../utils/api';
+import { callFeatureEndpoint } from '../utils/apiWrappers';
 import { log, ERR, LOG } from '../utils/log';
 
 // Mock dependencies
-jest.mock('../utils/api');
+jest.mock('../utils/apiWrappers');
 jest.mock('../utils/log');
+jest.mock('@react-native-async-storage/async-storage', () => ({
+  getItem: jest.fn(),
+  setItem: jest.fn(),
+  removeItem: jest.fn(),
+}));
 
 describe('currentVolatility/api.ts', () => {
   beforeEach(() => {
@@ -28,18 +33,21 @@ describe('currentVolatility/api.ts', () => {
     };
 
     it('successfully fetches current volatility data with default options', async () => {
-      callEndpoint.mockResolvedValue({
+      callFeatureEndpoint.mockResolvedValue({
         success: true,
         data: mockCurrentVolatilityData,
         error: null,
         status: 200,
+        blocked: false,
       });
 
       const result = await fetchCurrentVolatility();
 
       expect(result).toEqual(mockCurrentVolatilityData);
-      expect(callEndpoint).toHaveBeenCalledWith(
+      expect(callFeatureEndpoint).toHaveBeenCalledWith(
+        'currentVolatility',
         'CRYPTO_PROXY_CURRENT_VOLATILITY',
+        'default',
         {
           queryParams: {
             type: 'current',
@@ -50,18 +58,21 @@ describe('currentVolatility/api.ts', () => {
     });
 
     it('successfully fetches current volatility data with per_page option', async () => {
-      callEndpoint.mockResolvedValue({
+      callFeatureEndpoint.mockResolvedValue({
         success: true,
         data: mockCurrentVolatilityData,
         error: null,
         status: 200,
+        blocked: false,
       });
 
       const result = await fetchCurrentVolatility({ per_page: 100 });
 
       expect(result).toEqual(mockCurrentVolatilityData);
-      expect(callEndpoint).toHaveBeenCalledWith(
+      expect(callFeatureEndpoint).toHaveBeenCalledWith(
+        'currentVolatility',
         'CRYPTO_PROXY_CURRENT_VOLATILITY',
+        'default',
         {
           queryParams: {
             type: 'current',
@@ -72,11 +83,12 @@ describe('currentVolatility/api.ts', () => {
     });
 
     it('returns null when API call fails', async () => {
-      callEndpoint.mockResolvedValue({
+      callFeatureEndpoint.mockResolvedValue({
         success: false,
         data: null,
         error: 'Network error',
         status: null,
+        blocked: false,
       });
 
       const result = await fetchCurrentVolatility();
@@ -89,11 +101,12 @@ describe('currentVolatility/api.ts', () => {
     });
 
     it('returns null when API returns error status', async () => {
-      callEndpoint.mockResolvedValue({
+      callFeatureEndpoint.mockResolvedValue({
         success: false,
         data: null,
         error: 'API call failed: 500 Internal Server Error',
         status: 500,
+        blocked: false,
       });
 
       const result = await fetchCurrentVolatility();
@@ -105,12 +118,31 @@ describe('currentVolatility/api.ts', () => {
       );
     });
 
+    it('returns null when blocked', async () => {
+      callFeatureEndpoint.mockResolvedValue({
+        success: false,
+        data: null,
+        error: 'Service temporarily unavailable: currentVolatility feature is blocked',
+        status: 503,
+        blocked: true,
+      });
+
+      const result = await fetchCurrentVolatility();
+
+      expect(result).toBeNull();
+      expect(log).toHaveBeenCalledWith(
+        expect.stringContaining('⚡ Current volatility data blocked'),
+        ERR
+      );
+    });
+
     it('handles null data in successful response', async () => {
-      callEndpoint.mockResolvedValue({
+      callFeatureEndpoint.mockResolvedValue({
         success: true,
         data: null,
         error: null,
         status: 200,
+        blocked: false,
       });
 
       const result = await fetchCurrentVolatility();
@@ -135,11 +167,12 @@ describe('currentVolatility/api.ts', () => {
     };
 
     it('logs current volatility data when fetch succeeds', async () => {
-      callEndpoint.mockResolvedValue({
+      callFeatureEndpoint.mockResolvedValue({
         success: true,
         data: mockCurrentVolatilityData,
         error: null,
         status: 200,
+        blocked: false,
       });
 
       await fetchAndLogCurrentVolatility();
@@ -153,11 +186,12 @@ describe('currentVolatility/api.ts', () => {
     });
 
     it('logs error message when fetch fails', async () => {
-      callEndpoint.mockResolvedValue({
+      callFeatureEndpoint.mockResolvedValue({
         success: false,
         data: null,
         error: 'Network error',
         status: null,
+        blocked: false,
       });
 
       await fetchAndLogCurrentVolatility();
@@ -166,17 +200,20 @@ describe('currentVolatility/api.ts', () => {
     });
 
     it('passes options through to fetchCurrentVolatility', async () => {
-      callEndpoint.mockResolvedValue({
+      callFeatureEndpoint.mockResolvedValue({
         success: true,
         data: mockCurrentVolatilityData,
         error: null,
         status: 200,
+        blocked: false,
       });
 
       await fetchAndLogCurrentVolatility({ per_page: 150 });
 
-      expect(callEndpoint).toHaveBeenCalledWith(
+      expect(callFeatureEndpoint).toHaveBeenCalledWith(
+        'currentVolatility',
         'CRYPTO_PROXY_CURRENT_VOLATILITY',
+        'default',
         {
           queryParams: {
             type: 'current',

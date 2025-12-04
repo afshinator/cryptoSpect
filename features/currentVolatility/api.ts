@@ -1,8 +1,10 @@
 // features/currentVolatility/api.ts
 // Functions for fetching current volatility data from Crypto Proxy API
 
-import { callEndpoint } from '../../utils/api';
+import { callFeatureEndpoint } from '../../utils/apiWrappers';
 import { ERR, log, LOG } from '../../utils/log';
+
+const FEATURE_ID = 'currentVolatility' as const;
 
 /**
  * Response type for current volatility endpoint
@@ -31,12 +33,15 @@ export interface CurrentVolatilityOptions {
  * @returns Promise resolving to the current volatility data or null if error
  */
 export async function fetchCurrentVolatility(
-  options: CurrentVolatilityOptions = {}
+  options: CurrentVolatilityOptions = {},
+  dataSource: 'default' | 'alternate' = 'default'
 ): Promise<CurrentVolatilityResponse | null> {
   const { per_page } = options;
 
-  const result = await callEndpoint<CurrentVolatilityResponse>(
+  const result = await callFeatureEndpoint<CurrentVolatilityResponse>(
+    FEATURE_ID,
     'CRYPTO_PROXY_CURRENT_VOLATILITY',
+    dataSource,
     {
       queryParams: {
         type: 'current',
@@ -49,7 +54,12 @@ export async function fetchCurrentVolatility(
     log('⚡ Current volatility data fetched successfully', LOG);
     return result.data;
   } else {
-    log(`⚡ Failed to fetch current volatility data: ${result.error}`, ERR);
+    // Log different messages for blocked vs actual errors
+    if (result.blocked) {
+      log(`⚡ Current volatility data blocked: ${result.error}`, ERR);
+    } else {
+      log(`⚡ Failed to fetch current volatility data: ${result.error}`, ERR);
+    }
     return null;
   }
 }

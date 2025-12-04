@@ -3,6 +3,7 @@ import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { SupportedCurrency } from '@/constants/currency';
 import { usePrefsStore } from '@/stores/prefsStore';
+import { Link } from 'expo-router';
 import { StyleSheet, Switch, TouchableOpacity, View } from 'react-native';
 
 export default function SettingsScreen() {
@@ -121,6 +122,21 @@ export default function SettingsScreen() {
             Reduce spacing and padding for a more compact layout
           </ThemedText>
         </ThemedView>
+
+        {/* API Configuration Link */}
+        <ThemedView style={styles.section}>
+          <ThemedText type="subtitle" style={styles.sectionTitle}>
+            API Configuration
+          </ThemedText>
+          <Link href="/config" asChild>
+            <TouchableOpacity style={styles.linkButton}>
+              <ThemedText type="link">Configure API Blocking</ThemedText>
+            </TouchableOpacity>
+          </Link>
+          <ThemedText type="small" colorVariant="textSubtle">
+            Block API calls on a per-feature basis
+          </ThemedText>
+        </ThemedView>
       </ThemedView>
     </ScreenContainer>
   );
@@ -162,6 +178,10 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    marginBottom: 8,
+  },
+  linkButton: {
+    paddingVertical: 8,
     marginBottom: 8,
   },
 });
