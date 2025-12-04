@@ -82,7 +82,6 @@ export default function HomeScreen() {
         <HelloWave />
       </ThemedView>
 
-      {/* Current Volatility Widget */}
       {volatilityWidgetData && (
         <CurrentVolatilityWidget 
           data={volatilityWidgetData}

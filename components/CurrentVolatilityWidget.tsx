@@ -280,7 +280,6 @@ function CompactView({
       darkColor="transparent" // Make background transparent to show parent BorderedSection tint
     >
       <ThemedView style={styles.compactRow} lightColor="transparent" darkColor="transparent">
-        {/* 1-Hour Section (Stacked) */}
         <ThemedView style={styles.compactItemStacked} lightColor="transparent" darkColor="transparent">
           <ThemedView style={styles.compactValueRow} lightColor="transparent" darkColor="transparent">
             <ThemedText type="default" style={styles.compactLabel}>
@@ -290,7 +289,6 @@ function CompactView({
               {data.volatility1h.toFixed(VOLATILITY_DECIMAL_PLACES)}%
             </ThemedText>
           </ThemedView>
-          {/* Badge is now below the percentage */}
           <VolatilityBadge level={data.level1h} compact />
         </ThemedView>
 
@@ -298,7 +296,6 @@ function CompactView({
           |
         </ThemedText>
 
-        {/* 24-Hour Section (Stacked) */}
         <ThemedView style={styles.compactItemStacked} lightColor="transparent" darkColor="transparent">
           <ThemedView style={styles.compactValueRow} lightColor="transparent" darkColor="transparent">
             <ThemedText type="default" style={styles.compactLabel}>
@@ -308,15 +305,14 @@ function CompactView({
               {data.volatility24h.toFixed(VOLATILITY_DECIMAL_PLACES)}%
             </ThemedText>
           </ThemedView>
-          {/* Badge is now below the percentage */}
           <VolatilityBadge level={data.level24h} compact />
         </ThemedView>
 
-        {contextEmoji && (
+        {contextEmoji && contextEmoji.length > 0 ? (
           <ThemedText type="default" style={styles.compactEmoji}>
             {contextEmoji}
           </ThemedText>
-        )}
+        ) : null}
       </ThemedView>
 
       <ThemedText
@@ -346,16 +342,13 @@ function NormalView({
       lightColor="transparent" // Make background transparent to show parent BorderedSection tint
       darkColor="transparent" // Make background transparent to show parent BorderedSection tint
     >
-      {/* Header with emoji if present */}
       <ThemedView style={styles.normalHeader} lightColor="transparent" darkColor="transparent">
-        {/* Updated widget title */}
-        <ThemedText type="subtitle">Current Market Volatility</ThemedText> 
-        {contextEmoji && (
-          // Increased emoji size to xlarge
+        <ThemedText type="subtitle">Current Market Volatility</ThemedText>
+        {contextEmoji && contextEmoji.length > 0 ? (
           <ThemedText type="xlarge" style={styles.normalEmoji}>
             {contextEmoji}
           </ThemedText>
-        )}
+        ) : null}
       </ThemedView>
 
       {/* Data Grid: 1h and 24h side by side with divider */}
