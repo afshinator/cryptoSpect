@@ -2,6 +2,7 @@ import { Image } from 'expo-image';
 import { useEffect, useRef } from 'react';
 import { Platform, StyleSheet } from 'react-native';
 
+import { CurrentVolatilityWidget } from '@/components/CurrentVolatilityWidget';
 import { HelloWave } from '@/components/hello-wave';
 import ParallaxScrollView from '@/components/parallax-scroll-view';
 import { ThemedText } from '@/components/themed-text';
@@ -9,6 +10,7 @@ import { ThemedView } from '@/components/themed-view';
 import { fetchCurrentVolatility } from '@/features/currentVolatility/api';
 import { fetchCurrentDominance } from '@/features/dominance/current/api';
 import { useLatestStore } from '@/stores/latestStore';
+import { usePrefsStore } from '@/stores/prefsStore';
 import { log, LOG, TMI } from '@/utils/log';
 import { Link } from 'expo-router';
 
@@ -19,10 +21,22 @@ export default function HomeScreen() {
     currentDominanceData,
     setCurrentDominanceData,
   } = useLatestStore();
+  const { compactMode } = usePrefsStore();
 
   // Use refs to track if fetches are in progress to prevent duplicate calls
   const volatilityFetchInProgress = useRef(false);
   const dominanceFetchInProgress = useRef(false);
+
+  // Convert CurrentVolatilityResponse to VolatilityData format for widget
+  const volatilityWidgetData = currentVolatilityData ? {
+    volatility1h: currentVolatilityData.volatility1h,
+    volatility24h: currentVolatilityData.volatility24h,
+    level1h: currentVolatilityData.level1h as 'LOW' | 'NORMAL' | 'HIGH' | 'EXTREME',
+    level24h: currentVolatilityData.level24h as 'LOW' | 'NORMAL' | 'HIGH' | 'EXTREME',
+    lastUpdated: currentVolatilityData.fetchedAt 
+      ? new Date(currentVolatilityData.fetchedAt).toISOString()
+      : undefined,
+  } : null;
 
   useEffect(() => {
     // Only fetch if data is null and not already fetching
@@ -67,6 +81,15 @@ export default function HomeScreen() {
         <ThemedText type="title">Welcome!</ThemedText>
         <HelloWave />
       </ThemedView>
+
+      {/* Current Volatility Widget */}
+      {volatilityWidgetData && (
+        <CurrentVolatilityWidget 
+          data={volatilityWidgetData}
+          mode={compactMode ? 'compact' : 'normal'}
+        />
+      )}
+
       <ThemedView style={styles.stepContainer}>
         <ThemedText type="subtitle">Step 1: Try it</ThemedText>
         <ThemedText>

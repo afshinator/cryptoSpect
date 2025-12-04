@@ -29,7 +29,11 @@ async function fetchFromBackend(): Promise<CurrentDominanceResponse | null> {
 
   if (result.success && result.data) {
     log('💪 Current dominance data fetched successfully from backend (primary)', LOG);
-    return result.data;
+    // Add client-side timestamp when data is received
+    return {
+      ...result.data,
+      fetchedAt: Date.now(),
+    };
   } else {
     if (result.blocked) {
       log(`💪 Primary data source (backend) ⛔blocked⛔ for current dominance`, TMI);
@@ -66,7 +70,11 @@ async function fetchFromCoinGecko(): Promise<CurrentDominanceResponse | null> {
     const dominanceData = calculateDominance(marketCapData);
     
     log('💪 Current dominance data calculated successfully from CoinGecko', TMI);
-    return dominanceData;
+    // Add client-side timestamp when data is received
+    return {
+      ...dominanceData,
+      fetchedAt: Date.now(),
+    };
   } catch (error: any) {
     const errorMessage = error?.message || 'Unknown error calculating dominance from CoinGecko';
     log(`💪 Failed to calculate dominance from CoinGecko: ${errorMessage}`, ERR);
@@ -139,6 +147,7 @@ export async function fetchAndLogCurrentDominance(): Promise<void> {
     log(`💪 Stablecoins: ${data.stablecoins.dominance}% ($${data.stablecoins.marketCap.toLocaleString()})`, LOG);
     log(`💪 Others: ${data.others.dominance}% ($${data.others.marketCap.toLocaleString()})`, LOG);
     log(`💪 Timestamp: ${new Date(data.timestamp).toISOString()}`, LOG);
+    log(`💪 Fetched At: ${new Date(data.fetchedAt).toISOString()}`, LOG);
     log('💪 ===============================', LOG);
   } else {
     log('💪 Failed to fetch current dominance data', ERR);

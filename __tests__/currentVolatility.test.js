@@ -43,7 +43,18 @@ describe('currentVolatility/api.ts', () => {
 
       const result = await fetchCurrentVolatility();
 
-      expect(result).toEqual(mockCurrentVolatilityData);
+      expect(result).toMatchObject({
+        ...mockCurrentVolatilityData,
+        fetchedAt: expect.any(Number),
+      });
+      expect(result?.fetchedAt).toBeGreaterThan(0);
+      
+      // Verify fetchedAt is a valid recent timestamp
+      const now = Date.now();
+      const fetchedAt = result?.fetchedAt || 0;
+      expect(fetchedAt).toBeGreaterThan(now - 1000); // Within last second
+      expect(fetchedAt).toBeLessThanOrEqual(now);
+      
       expect(callFeatureEndpoint).toHaveBeenCalledWith(
         'currentVolatility',
         'CRYPTO_PROXY_CURRENT_VOLATILITY',
@@ -68,7 +79,18 @@ describe('currentVolatility/api.ts', () => {
 
       const result = await fetchCurrentVolatility({ per_page: 100 });
 
-      expect(result).toEqual(mockCurrentVolatilityData);
+      expect(result).toMatchObject({
+        ...mockCurrentVolatilityData,
+        fetchedAt: expect.any(Number),
+      });
+      expect(result?.fetchedAt).toBeGreaterThan(0);
+      
+      // Verify fetchedAt is a valid recent timestamp
+      const now = Date.now();
+      const fetchedAt = result?.fetchedAt || 0;
+      expect(fetchedAt).toBeGreaterThan(now - 1000); // Within last second
+      expect(fetchedAt).toBeLessThanOrEqual(now);
+      
       expect(callFeatureEndpoint).toHaveBeenCalledWith(
         'currentVolatility',
         'CRYPTO_PROXY_CURRENT_VOLATILITY',
@@ -182,6 +204,7 @@ describe('currentVolatility/api.ts', () => {
       expect(log).toHaveBeenCalledWith('⚡ 24h Volatility: 4.1% (NORMAL)', LOG);
       expect(log).toHaveBeenCalledWith('⚡ Top Mover: ADA (12.5%)', LOG);
       expect(log).toHaveBeenCalledWith('⚡ Market Cap Coverage: 87.0%', LOG);
+      expect(log).toHaveBeenCalledWith(expect.stringContaining('⚡ Fetched At:'), LOG);
       expect(log).toHaveBeenCalledWith('⚡ ===============================', LOG);
     });
 
@@ -221,6 +244,88 @@ describe('currentVolatility/api.ts', () => {
           },
         }
       );
+    });
+  });
+
+  describe('fetchedAt timestamp', () => {
+    const mockCurrentVolatilityData = {
+      volatility1h: 6.2,
+      volatility24h: 4.1,
+      level1h: 'HIGH',
+      level24h: 'NORMAL',
+      topMoverPercentage: 12.5,
+      topMoverCoin: 'ADA',
+      marketCapCoverage: 0.87,
+    };
+
+    it('sets fetchedAt timestamp when data is successfully fetched', async () => {
+      callFeatureEndpoint.mockResolvedValue({
+        success: true,
+        data: mockCurrentVolatilityData,
+        error: null,
+        status: 200,
+        blocked: false,
+      });
+
+      const beforeFetch = Date.now();
+      const result = await fetchCurrentVolatility();
+      const afterFetch = Date.now();
+
+      expect(result).not.toBeNull();
+      expect(result?.fetchedAt).toBeDefined();
+      expect(typeof result?.fetchedAt).toBe('number');
+      expect(result?.fetchedAt).toBeGreaterThanOrEqual(beforeFetch);
+      expect(result?.fetchedAt).toBeLessThanOrEqual(afterFetch);
+    });
+
+    it('sets different fetchedAt timestamps for sequential fetches', async () => {
+      callFeatureEndpoint.mockResolvedValue({
+        success: true,
+        data: mockCurrentVolatilityData,
+        error: null,
+        status: 200,
+        blocked: false,
+      });
+
+      const result1 = await fetchCurrentVolatility();
+      // Small delay to ensure different timestamps
+      await new Promise(resolve => setTimeout(resolve, 10));
+      const result2 = await fetchCurrentVolatility();
+
+      expect(result1?.fetchedAt).toBeDefined();
+      expect(result2?.fetchedAt).toBeDefined();
+      expect(result2?.fetchedAt).toBeGreaterThan(result1?.fetchedAt);
+    });
+
+    it('does not set fetchedAt when fetch fails', async () => {
+      callFeatureEndpoint.mockResolvedValue({
+        success: false,
+        data: null,
+        error: 'Network error',
+        status: null,
+        blocked: false,
+      });
+
+      const result = await fetchCurrentVolatility();
+
+      expect(result).toBeNull();
+    });
+
+    it('fetchedAt is a valid date when converted', async () => {
+      callFeatureEndpoint.mockResolvedValue({
+        success: true,
+        data: mockCurrentVolatilityData,
+        error: null,
+        status: 200,
+        blocked: false,
+      });
+
+      const result = await fetchCurrentVolatility();
+
+      expect(result?.fetchedAt).toBeDefined();
+      const date = new Date(result?.fetchedAt);
+      expect(date.getTime()).toBe(result?.fetchedAt);
+      expect(date.toString()).not.toBe('Invalid Date');
     });
   });
 });

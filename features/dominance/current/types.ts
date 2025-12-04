@@ -81,8 +81,11 @@ export interface DominanceAnalysis {
   /** Others dominance data (calculated) */
   others: CategoryDominance;
   
-  /** Unix timestamp of when the calculation was performed */
+  /** Unix timestamp (milliseconds) of when the calculation was performed (from API or calculation) */
   timestamp: number;
+  
+  /** Unix timestamp (milliseconds) of when this data was fetched and stored by the app */
+  fetchedAt: number;
 }
 
 /**

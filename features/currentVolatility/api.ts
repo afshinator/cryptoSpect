@@ -17,6 +17,8 @@ export interface CurrentVolatilityResponse {
   topMoverPercentage: number;
   topMoverCoin: string;
   marketCapCoverage: number;
+  /** Unix timestamp (milliseconds) of when this data was fetched and stored by the app */
+  fetchedAt: number;
 }
 
 /**
@@ -53,7 +55,11 @@ export async function fetchCurrentVolatility(
 
   if (result.success && result.data) {
     log('⚡ Current volatility data fetched successfully', LOG);
-    return result.data;
+    // Add client-side timestamp when data is received
+    return {
+      ...result.data,
+      fetchedAt: Date.now(),
+    };
   } else {
     // Log different messages for blocked vs actual errors
     if (result.blocked) {
@@ -80,6 +86,7 @@ export async function fetchAndLogCurrentVolatility(
     log(`⚡ 24h Volatility: ${data.volatility24h}% (${data.level24h})`, LOG);
     log(`⚡ Top Mover: ${data.topMoverCoin} (${data.topMoverPercentage}%)`, LOG);
     log(`⚡ Market Cap Coverage: ${(data.marketCapCoverage * 100).toFixed(1)}%`, LOG);
+    log(`⚡ Fetched At: ${new Date(data.fetchedAt).toISOString()}`, LOG);
     log('⚡ ===============================', LOG);
   } else {
     log('⚡ Failed to fetch current volatility data', ERR);
