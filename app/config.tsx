@@ -5,8 +5,9 @@ import { BorderedSection } from '@/components/bordered-section';
 import { ScreenContainer } from '@/components/ScreenContainer';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
-import { getAllFeatures, DataSource } from '@/constants/features';
-import { useApiBlockingStore, getEffectivePreferences } from '@/stores/apiBlockingStore';
+import { getAllFeatures } from '@/constants/features';
+import { useThemeColor } from '@/hooks/use-theme-color';
+import { getEffectivePreferences, useApiBlockingStore } from '@/stores/apiBlockingStore';
 import SegmentedControl from '@react-native-segmented-control/segmented-control';
 import { StyleSheet, Switch, View } from 'react-native';
 
@@ -22,6 +23,13 @@ export default function ConfigScreen() {
     setFeaturePreferences,
   } = useApiBlockingStore();
   const features = getAllFeatures();
+
+  // Theme colors for switches
+  const switchInactiveTrack = useThemeColor({}, 'icon');
+  const switchSuccessTrack = useThemeColor({}, 'success');
+  const switchErrorTrack = useThemeColor({}, 'error');
+  const switchActiveThumb = useThemeColor({}, 'highlightedText');
+  const switchInactiveThumb = useThemeColor({}, 'buttonSecondary');
 
   return (
     <ScreenContainer>
@@ -71,8 +79,8 @@ export default function ConfigScreen() {
             <Switch
               value={globalPreferences.enableFallback}
               onValueChange={(value) => setGlobalPreferences({ enableFallback: value })}
-              trackColor={{ false: '#767577', true: '#4caf50' }}
-              thumbColor={globalPreferences.enableFallback ? '#fff' : '#f4f3f4'}
+              trackColor={{ false: switchInactiveTrack, true: switchSuccessTrack }}
+              thumbColor={globalPreferences.enableFallback ? switchActiveThumb : switchInactiveThumb}
             />
           </View>
         </BorderedSection>
@@ -97,15 +105,15 @@ export default function ConfigScreen() {
             <Switch
               value={globalBlocking.blockBackend}
               onValueChange={(value) => setGlobalBlocking({ blockBackend: value })}
-              trackColor={{ false: '#767577', true: '#d32f2f' }}
-              thumbColor={globalBlocking.blockBackend ? '#fff' : '#f4f3f4'}
+              trackColor={{ false: switchInactiveTrack, true: switchErrorTrack }}
+              thumbColor={globalBlocking.blockBackend ? switchActiveThumb : switchInactiveThumb}
             />
           </View>
 
           {/* CoinGecko Blocking */}
           <View style={styles.switchRow}>
             <View style={styles.switchLabelContainer}>
-              <ThemedText type="default">Block CoinGecko API</ThemedText>
+              <ThemedText type="default">Block 🦎CoinGecko API</ThemedText>
               <ThemedText type="small" colorVariant="textSubtle">
                 Block all calls to CoinGecko API
               </ThemedText>
@@ -113,8 +121,8 @@ export default function ConfigScreen() {
             <Switch
               value={globalBlocking.blockCoinGecko}
               onValueChange={(value) => setGlobalBlocking({ blockCoinGecko: value })}
-              trackColor={{ false: '#767577', true: '#d32f2f' }}
-              thumbColor={globalBlocking.blockCoinGecko ? '#fff' : '#f4f3f4'}
+              trackColor={{ false: switchInactiveTrack, true: switchErrorTrack }}
+              thumbColor={globalBlocking.blockCoinGecko ? switchActiveThumb : switchInactiveThumb}
             />
           </View>
         </BorderedSection>
@@ -137,8 +145,19 @@ export default function ConfigScreen() {
             };
             const effectivePrefs = getEffectivePreferences(feature.id);
 
+            // Map feature IDs to emojis
+            const featureEmojis: Record<string, string> = {
+              currentVolatility: '⚡',
+              currentDominance: '💪',
+            };
+
             return (
-              <BorderedSection key={feature.id}>
+              <BorderedSection 
+                key={feature.id}
+                backgroundEmoji={featureEmojis[feature.id]}
+                emojiOpacity={0.15}
+                emojiPlacement="upperRight"
+              >
                 <ThemedText type="defaultSemiBold" style={styles.featureName}>
                   {feature.name}
                 </ThemedText>
@@ -159,8 +178,8 @@ export default function ConfigScreen() {
                   <Switch
                     value={prefs.useGlobalPreferences}
                     onValueChange={(value) => setFeaturePreferences(feature.id, { useGlobalPreferences: value })}
-                    trackColor={{ false: '#767577', true: '#4caf50' }}
-                    thumbColor={prefs.useGlobalPreferences ? '#fff' : '#f4f3f4'}
+                    trackColor={{ false: switchInactiveTrack, true: switchSuccessTrack }}
+                    thumbColor={prefs.useGlobalPreferences ? switchActiveThumb : switchInactiveThumb}
                   />
                 </View>
 
@@ -184,7 +203,7 @@ export default function ConfigScreen() {
                       <ThemedText type="small" colorVariant="textSubtle" style={styles.segmentedControlDescription}>
                         {prefs.preferredDataSource === 'primary' 
                           ? 'Primary (Backend API)' 
-                          : 'Secondary (CoinGecko API)'}
+                          : 'Secondary (🦎CoinGecko API)'}
                       </ThemedText>
                     </View>
 
@@ -199,8 +218,8 @@ export default function ConfigScreen() {
                       <Switch
                         value={prefs.enableFallback}
                         onValueChange={(value) => setFeaturePreferences(feature.id, { enableFallback: value })}
-                        trackColor={{ false: '#767577', true: '#4caf50' }}
-                        thumbColor={prefs.enableFallback ? '#fff' : '#f4f3f4'}
+                        trackColor={{ false: switchInactiveTrack, true: switchSuccessTrack }}
+                        thumbColor={prefs.enableFallback ? switchActiveThumb : switchInactiveThumb}
                       />
                     </View>
                   </>
@@ -217,8 +236,8 @@ export default function ConfigScreen() {
                   <Switch
                     value={blocking.blockPrimary}
                     onValueChange={(value) => setFeatureBlocking(feature.id, { blockPrimary: value })}
-                    trackColor={{ false: '#767577', true: '#d32f2f' }}
-                    thumbColor={blocking.blockPrimary ? '#fff' : '#f4f3f4'}
+                    trackColor={{ false: switchInactiveTrack, true: switchErrorTrack }}
+                    thumbColor={blocking.blockPrimary ? switchActiveThumb : switchInactiveThumb}
                   />
                 </View>
 
@@ -230,15 +249,15 @@ export default function ConfigScreen() {
                     </ThemedText>
                     <ThemedText type="small" colorVariant="textSubtle" style={!feature.supportsSecondarySource && styles.disabledText}>
                       {feature.supportsSecondarySource
-                        ? 'Block secondary/CoinGecko API calls'
+                        ? 'Block secondary/🦎CoinGecko API calls'
                         : 'Secondary source not yet supported'}
                     </ThemedText>
                   </View>
                   <Switch
                     value={blocking.blockSecondary}
                     onValueChange={(value) => setFeatureBlocking(feature.id, { blockSecondary: value })}
-                    trackColor={{ false: '#767577', true: '#d32f2f' }}
-                    thumbColor={blocking.blockSecondary ? '#fff' : '#f4f3f4'}
+                    trackColor={{ false: switchInactiveTrack, true: switchErrorTrack }}
+                    thumbColor={blocking.blockSecondary ? switchActiveThumb : switchInactiveThumb}
                     disabled={!feature.supportsSecondarySource}
                   />
                 </View>

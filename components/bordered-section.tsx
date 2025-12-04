@@ -3,7 +3,9 @@
 
 import { ThemedView, ThemedViewProps } from '@/components/themed-view';
 import { useThemeColor } from '@/hooks/use-theme-color';
-import { ViewStyle } from 'react-native';
+import { StyleSheet, Text, View, ViewStyle } from 'react-native';
+
+export type EmojiPlacement = 'center' | 'upperRight';
 
 export interface BorderedSectionProps extends Omit<ThemedViewProps, 'style'> {
   /** Padding inside the section (default: 16) */
@@ -14,6 +16,14 @@ export interface BorderedSectionProps extends Omit<ThemedViewProps, 'style'> {
   borderColor?: { light?: string; dark?: string };
   /** Margin bottom (default: 24) */
   marginBottom?: number;
+  /** Optional emoji to display in the background, prominently large, under all content */
+  backgroundEmoji?: string;
+  /** Opacity for the background emoji (default: 0.1) */
+  emojiOpacity?: number;
+  /** Placement of the background emoji (default: 'center') */
+  emojiPlacement?: EmojiPlacement;
+  /** Size of the background emoji in pixels (default: 120) */
+  emojiSize?: number;
   /** Additional styles to apply */
   style?: ViewStyle;
 }
@@ -27,6 +37,10 @@ export function BorderedSection({
   backgroundColor,
   borderColor,
   marginBottom = 24,
+  backgroundEmoji,
+  emojiOpacity = 0.1,
+  emojiPlacement = 'center',
+  emojiSize = 120,
   style,
   lightColor,
   darkColor,
@@ -44,7 +58,13 @@ export function BorderedSection({
     borderWidth: 1,
     borderColor: border,
     marginBottom,
+    overflow: 'hidden', // Ensure emoji doesn't overflow rounded corners
   };
+
+  // Determine emoji container style based on placement
+  const emojiContainerStyle = emojiPlacement === 'upperRight' 
+    ? styles.emojiContainerUpperRight 
+    : styles.emojiContainerCenter;
 
   return (
     <ThemedView
@@ -53,8 +73,49 @@ export function BorderedSection({
       darkColor={darkColor || backgroundColor?.dark}
       {...otherProps}
     >
-      {children}
+      {backgroundEmoji && (
+        <View style={emojiContainerStyle} pointerEvents="none">
+          <Text style={[styles.emoji, { opacity: emojiOpacity, fontSize: emojiSize }]}>
+            {backgroundEmoji}
+          </Text>
+        </View>
+      )}
+      <View style={styles.contentContainer}>
+        {children}
+      </View>
     </ThemedView>
   );
 }
+
+const styles = StyleSheet.create({
+  emojiContainerCenter: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    bottom: 0,
+    right: 0,
+    justifyContent: 'center',
+    alignItems: 'center',
+    width: '100%',
+    height: '100%',
+    zIndex: 0,
+  },
+  emojiContainerUpperRight: {
+    position: 'absolute',
+    top: 0,
+    right: 0,
+    justifyContent: 'flex-start',
+    alignItems: 'flex-end',
+    paddingTop: 8,
+    paddingRight: 8,
+    zIndex: 0,
+  },
+  emoji: {
+    textAlign: 'center',
+  },
+  contentContainer: {
+    position: 'relative',
+    zIndex: 1,
+  },
+});
 

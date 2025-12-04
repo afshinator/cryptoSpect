@@ -3,6 +3,7 @@ import { ScreenContainer } from '@/components/ScreenContainer';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { SupportedCurrency } from '@/constants/currency';
+import { useThemeColor } from '@/hooks/use-theme-color';
 import { usePrefsStore } from '@/stores/prefsStore';
 import { Link } from 'expo-router';
 import { StyleSheet, Switch, TouchableOpacity, View } from 'react-native';
@@ -19,7 +20,40 @@ export default function SettingsScreen() {
     setCompactMode,
   } = usePrefsStore();
 
+  // Theme colors for switches
+  const switchInactiveTrack = useThemeColor({}, 'icon');
+  const switchTintTrack = useThemeColor({}, 'tint');
+  const switchActiveThumb = useThemeColor({}, 'highlightedText');
+  const switchInactiveThumb = useThemeColor({}, 'buttonSecondary');
+
   const commonCurrencies: SupportedCurrency[] = ['usd', 'eur', 'gbp', 'jpy', 'cny', 'cad', 'aud'];
+
+  // Theme colors for buttons
+  const buttonBorder = useThemeColor({}, 'border');
+  const buttonActiveBorder = useThemeColor({}, 'tint');
+  
+  // Helper to convert hex to rgba with opacity
+  const hexToRgba = (hex: string, opacity: number): string => {
+    const r = parseInt(hex.slice(1, 3), 16);
+    const g = parseInt(hex.slice(3, 5), 16);
+    const b = parseInt(hex.slice(5, 7), 16);
+    return `rgba(${r}, ${g}, ${b}, ${opacity})`;
+  };
+  
+  const buttonActiveBackground = hexToRgba(buttonActiveBorder, 0.1);
+
+  // Create styles with theme colors
+  const dynamicStyles = StyleSheet.create({
+    button: {
+      ...styles.button,
+      borderColor: buttonBorder,
+    },
+    buttonActive: {
+      ...styles.buttonActive,
+      backgroundColor: buttonActiveBackground,
+      borderColor: buttonActiveBorder,
+    },
+  });
 
   return (
     <ScreenContainer>
@@ -38,8 +72,8 @@ export default function SettingsScreen() {
               <TouchableOpacity
                 key={mode}
                 style={[
-                  styles.button,
-                  lightDarkMode === mode && styles.buttonActive,
+                  dynamicStyles.button,
+                  lightDarkMode === mode && dynamicStyles.buttonActive,
                 ]}
                 onPress={() => setLightDarkMode(mode)}
               >
@@ -64,8 +98,8 @@ export default function SettingsScreen() {
               <TouchableOpacity
                 key={scale}
                 style={[
-                  styles.button,
-                  Math.abs(fontScale - scale) < 0.01 && styles.buttonActive,
+                  dynamicStyles.button,
+                  Math.abs(fontScale - scale) < 0.01 && dynamicStyles.buttonActive,
                 ]}
                 onPress={() => setFontScale(scale)}
               >
@@ -90,8 +124,8 @@ export default function SettingsScreen() {
               <TouchableOpacity
                 key={curr}
                 style={[
-                  styles.button,
-                  currency === curr && styles.buttonActive,
+                  dynamicStyles.button,
+                  currency === curr && dynamicStyles.buttonActive,
                 ]}
                 onPress={() => setCurrency(curr)}
               >
@@ -115,8 +149,8 @@ export default function SettingsScreen() {
             <Switch
               value={compactMode}
               onValueChange={setCompactMode}
-              trackColor={{ false: '#767577', true: '#0a7ea4' }}
-              thumbColor={compactMode ? '#fff' : '#f4f3f4'}
+              trackColor={{ false: switchInactiveTrack, true: switchTintTrack }}
+              thumbColor={compactMode ? switchActiveThumb : switchInactiveThumb}
             />
           </View>
           <ThemedText type="small" colorVariant="textSubtle">
@@ -164,13 +198,11 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: 'rgba(0, 0, 0, 0.1)',
     minWidth: 60,
     alignItems: 'center',
   },
   buttonActive: {
-    backgroundColor: 'rgba(10, 126, 164, 0.1)',
-    borderColor: '#0a7ea4',
+    // Colors will be set dynamically using theme colors
   },
   switchRow: {
     flexDirection: 'row',

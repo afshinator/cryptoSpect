@@ -40,6 +40,19 @@ export default function TestsIndexScreen() {
               </ThemedView>
             </Pressable>
           </Link>
+
+          <Link href="/tests/bordered-section-demo" asChild>
+            <Pressable style={linkItemStyle}>
+              <ThemedView style={styles.testItemContent}>
+                <ThemedText type="subtitle" style={styles.testItemTitle}>
+                  BorderedSection Component
+                </ThemedText>
+                <ThemedText colorVariant="textSubtle" style={styles.testItemDescription}>
+                  View BorderedSection with all props: padding, margin, emoji placement, size, and opacity
+                </ThemedText>
+              </ThemedView>
+            </Pressable>
+          </Link>
         </ThemedView>
       </ThemedView>
     </ScreenContainer>
