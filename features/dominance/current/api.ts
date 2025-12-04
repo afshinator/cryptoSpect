@@ -1,7 +1,7 @@
 // features/dominance/current/api.ts
 // Functions for fetching current dominance data from Crypto Proxy API with automatic fallback to CoinGecko
 
-import { isGlobalApiBlocked, shouldBlockEndpoint } from '@/stores/apiBlockingStore';
+import { getEffectivePreferences, isGlobalApiBlocked, shouldBlockEndpoint } from '@/stores/apiBlockingStore';
 import { callFeatureEndpoint } from '@/utils/apiWrappers';
 import { ERR, log, LOG, TMI } from '@/utils/log';
 import { calculateDominance, fetchAllMarketCapData } from './index';
@@ -16,24 +16,23 @@ const FEATURE_ID = 'currentDominance' as const;
 export type CurrentDominanceResponse = DominanceAnalysis;
 
 /**
- * Fetches current dominance data from the backend API
- * @param dataSource The data source to use ('default' for backend, 'alternate' for CoinGecko)
+ * Fetches current dominance data from the backend API (primary source)
  * @returns Promise resolving to the current dominance data or null if error
  */
 async function fetchFromBackend(): Promise<CurrentDominanceResponse | null> {
   const result = await callFeatureEndpoint<CurrentDominanceResponse>(
     FEATURE_ID,
     'CRYPTO_PROXY_CURRENT_DOMINANCE',
-    'default',
+    'primary',
     {}
   );
 
   if (result.success && result.data) {
-    log('💪 Current dominance data fetched successfully from backend', LOG);
+    log('💪 Current dominance data fetched successfully from backend (primary)', LOG);
     return result.data;
   } else {
     if (result.blocked) {
-      log(`💪 Default data source (backend) ⛔blocked⛔ for current dominance, will try alternate source`, LOG);
+      log(`💪 Primary data source (backend) ⛔blocked⛔ for current dominance`, TMI);
     } else {
       log(`💪 Failed to fetch current dominance data from backend: ${result.error}`, ERR);
     }
@@ -42,23 +41,23 @@ async function fetchFromBackend(): Promise<CurrentDominanceResponse | null> {
 }
 
 /**
- * Fetches current dominance data from CoinGecko and calculates it locally
+ * Fetches current dominance data from CoinGecko and calculates it locally (secondary source)
  * @returns Promise resolving to the current dominance data or null if error
  */
 async function fetchFromCoinGecko(): Promise<CurrentDominanceResponse | null> {
   // Check if CoinGecko is blocked globally or for this feature
   if (isGlobalApiBlocked('coingecko')) {
-    log('💪 CoinGecko API is blocked globally, cannot use as fallback', ERR);
+    log('💪 CoinGecko API is blocked globally, cannot use secondary source', ERR);
     return null;
   }
   
-  if (shouldBlockEndpoint(FEATURE_ID, 'COINGECKO_GLOBAL', 'alternate')) {
-    log('💪 CoinGecko alternate source is blocked for this feature', ERR);
+  if (shouldBlockEndpoint(FEATURE_ID, 'COINGECKO_GLOBAL', 'secondary')) {
+    log('💪 CoinGecko secondary source is blocked for this feature', ERR);
     return null;
   }
   
   try {
-    log('💪 Fetching dominance data from CoinGecko (alternate source)🏵️...', TMI);
+    log('💪 Fetching dominance data from CoinGecko (secondary source)🏵️...', TMI);
     
     // Fetch all market cap data from CoinGecko
     const marketCapData = await fetchAllMarketCapData();
@@ -76,38 +75,49 @@ async function fetchFromCoinGecko(): Promise<CurrentDominanceResponse | null> {
 }
 
 /**
- * Fetches current dominance data with automatic fallback
- * Tries backend first, then falls back to CoinGecko if backend is blocked or fails
+ * Fetches current dominance data respecting user preferences
+ * Tries preferred source first, then falls back to other source if enabled and preferred fails
  * @returns Promise resolving to the current dominance data or null if both sources fail
  */
 export async function fetchCurrentDominance(): Promise<CurrentDominanceResponse | null> {
-  // Try backend first
-  const backendResult = await fetchFromBackend();
-  if (backendResult) {
-    return backendResult;
+  const preferences = getEffectivePreferences(FEATURE_ID);
+  const { preferredDataSource, enableFallback } = preferences;
+
+  // Try preferred source first
+  const preferredResult = preferredDataSource === 'primary' 
+    ? await fetchFromBackend() 
+    : await fetchFromCoinGecko();
+  
+  if (preferredResult) {
+    return preferredResult;
   }
 
-  // Backend failed or blocked - try CoinGecko fallback
-  log('💪 Backend unavailable, falling back to CoinGecko...', TMI);
-  const coinGeckoResult = await fetchFromCoinGecko();
-  if (coinGeckoResult) {
-    return coinGeckoResult;
+  // Preferred source failed - try fallback if enabled
+  if (enableFallback) {
+    log(`💪 Preferred source (${preferredDataSource}) unavailable, falling back to ${preferredDataSource === 'primary' ? 'secondary' : 'primary'}...`, TMI);
+    const fallbackResult = preferredDataSource === 'primary' 
+      ? await fetchFromCoinGecko() 
+      : await fetchFromBackend();
+    
+    if (fallbackResult) {
+      return fallbackResult;
+    }
   }
 
-  // Both sources failed
-  log('💪 Both backend and CoinGecko failed to provide dominance data', ERR);
+  // Both sources failed or fallback disabled
+  log(`💪 Both ${preferredDataSource === 'primary' ? 'primary and secondary' : 'secondary and primary'} failed to provide dominance data${!enableFallback ? ' (fallback disabled)' : ''}`, ERR);
   return null;
 }
 
 /**
  * Fetches current dominance data from a specific source
- * @param dataSource The data source to use ('default' for backend, 'alternate' for CoinGecko)
+ * @param dataSource The data source to use ('primary' for backend, 'secondary' for CoinGecko)
  * @returns Promise resolving to the current dominance data or null if error
  */
 export async function fetchCurrentDominanceFromSource(
-  dataSource: 'default' | 'alternate' = 'default'
+  dataSource: 'primary' | 'secondary' = 'primary'
 ): Promise<CurrentDominanceResponse | null> {
-  if (dataSource === 'default') {
+  if (dataSource === 'primary') {
     return fetchFromBackend();
   } else {
     return fetchFromCoinGecko();

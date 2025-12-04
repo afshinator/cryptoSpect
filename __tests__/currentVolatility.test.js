@@ -47,7 +47,7 @@ describe('currentVolatility/api.ts', () => {
       expect(callFeatureEndpoint).toHaveBeenCalledWith(
         'currentVolatility',
         'CRYPTO_PROXY_CURRENT_VOLATILITY',
-        'default',
+        'primary',
         {
           queryParams: {
             type: 'current',
@@ -72,7 +72,7 @@ describe('currentVolatility/api.ts', () => {
       expect(callFeatureEndpoint).toHaveBeenCalledWith(
         'currentVolatility',
         'CRYPTO_PROXY_CURRENT_VOLATILITY',
-        'default',
+        'primary',
         {
           queryParams: {
             type: 'current',
@@ -213,7 +213,7 @@ describe('currentVolatility/api.ts', () => {
       expect(callFeatureEndpoint).toHaveBeenCalledWith(
         'currentVolatility',
         'CRYPTO_PROXY_CURRENT_VOLATILITY',
-        'default',
+        'primary',
         {
           queryParams: {
             type: 'current',

@@ -34,7 +34,7 @@ describe('apiWrappers.ts', () => {
       const result = await callFeatureEndpoint(
         'currentVolatility',
         'CRYPTO_PROXY_CURRENT_VOLATILITY',
-        'default',
+        'primary',
         {}
       );
 
@@ -42,12 +42,12 @@ describe('apiWrappers.ts', () => {
       expect(result.status).toBe(503);
       expect(result.blocked).toBe(true);
       expect(result.error).toContain('Service temporarily unavailable');
-      expect(result.error).toContain('default data source for currentVolatility is blocked');
+      expect(result.error).toContain('primary data source for currentVolatility is blocked');
       expect(callEndpoint).not.toHaveBeenCalled();
       expect(shouldBlockEndpoint).toHaveBeenCalledWith(
         'currentVolatility',
         'CRYPTO_PROXY_CURRENT_VOLATILITY',
-        'default'
+        'primary'
       );
       expect(log).toHaveBeenCalledWith(
         expect.stringContaining('Service temporarily unavailable'),
@@ -55,13 +55,13 @@ describe('apiWrappers.ts', () => {
       );
     });
 
-    it('returns blocked result with correct message for alternate data source', async () => {
+    it('returns blocked result with correct message for secondary data source', async () => {
       shouldBlockEndpoint.mockReturnValue(true);
 
       const result = await callFeatureEndpoint(
         'currentDominance',
         'COINGECKO_GLOBAL',
-        'alternate',
+        'secondary',
         {}
       );
 
@@ -69,12 +69,12 @@ describe('apiWrappers.ts', () => {
       expect(result.status).toBe(503);
       expect(result.blocked).toBe(true);
       expect(result.error).toContain('Service temporarily unavailable');
-      expect(result.error).toContain('alternate data source for currentDominance is blocked');
+      expect(result.error).toContain('secondary data source for currentDominance is blocked');
       expect(callEndpoint).not.toHaveBeenCalled();
       expect(shouldBlockEndpoint).toHaveBeenCalledWith(
         'currentDominance',
         'COINGECKO_GLOBAL',
-        'alternate'
+        'secondary'
       );
     });
 
@@ -91,7 +91,7 @@ describe('apiWrappers.ts', () => {
       const result = await callFeatureEndpoint(
         'currentVolatility',
         'CRYPTO_PROXY_CURRENT_VOLATILITY',
-        'default',
+        'primary',
         { queryParams: { type: 'current' } }
       );
 
@@ -116,7 +116,7 @@ describe('apiWrappers.ts', () => {
       await callFeatureEndpoint(
         'currentVolatility',
         'CRYPTO_PROXY_CURRENT_VOLATILITY',
-        'default',
+        'primary',
         {
           queryParams: { type: 'current', per_page: 100 },
           headers: { 'X-Custom': 'value' },
@@ -146,14 +146,14 @@ describe('apiWrappers.ts', () => {
       await callFeatureEndpoint(
         'currentVolatility',
         'CRYPTO_PROXY_CURRENT_VOLATILITY',
-        'alternate',
+        'secondary',
         {}
       );
 
       expect(shouldBlockEndpoint).toHaveBeenCalledWith(
         'currentVolatility',
         'CRYPTO_PROXY_CURRENT_VOLATILITY',
-        'alternate'
+        'secondary'
       );
     });
   });

@@ -20,19 +20,30 @@ Market dominance measures what percentage of the total cryptocurrency market cap
 
 ## API Calls Analysis
 
+The feature supports two data sources:
+
+### Backend API (Default)
+- **Endpoint**: `https://crypto-proxy-bice.vercel.app/api/dominance`
+- **API Calls**: 1 (returns pre-calculated dominance data)
+- **Response**: Complete dominance analysis with all categories
+
+### CoinGecko API (Alternate/Fallback)
+When the backend is unavailable or blocked, the app automatically falls back to CoinGecko:
+
 | # | Endpoint | Parameters | Purpose | Data Retrieved | API Calls |
 |---|----------|------------|---------|----------------|-----------|
-| 1 | `/global` | (none) | Get total market cap & BTC dominance % | `data.total_market_cap`, `data.market_cap_percentage.btc` | 1 |
+| 1 | `/global` | (none) | Get total market cap | `data.total_market_cap.usd` | 1 |
 | 2 | `/coins/markets` | `ids=bitcoin,ethereum,tether,usd-coin,dai,ethena-usde,paypal-usd,first-digital-usd,true-usd,gemini-dollar,euro-coin,usdd,liquity-usd,paxos-standard` | Get BTC, ETH, and all stablecoin market caps | `market_cap` for Bitcoin, Ethereum, and 12 stablecoins (14 coins total) | 1 |
 | 3 | (calculation) | N/A | Calculate "Others" | `Total - BTC - ETH - Stablecoins` | 0 |
 
-**Total API Calls: 2**
+**Total CoinGecko API Calls: 2**
 
 ### Rate Limit Considerations
 
 - **Free tier**: 30 calls/minute — 2 calls is well within limits
 - **With API key**: Higher limits — no concerns
-- **Combined call**: Single call fetches BTC, ETH, and all 12 stablecoins (14 coins total) for maximum efficiency
+- **Optimized calls**: Single call fetches BTC, ETH, and all 12 stablecoins (14 coins total) for maximum efficiency
+- **Automatic fallback**: If backend is blocked or fails, CoinGecko is used automatically
 
 ## Data Requirements
 
@@ -94,25 +105,54 @@ These are fetched in a single API call using comma-separated IDs.
 
 ### Data Source Separation
 
-The calculation logic is separated from the data source (CoinGecko API) to allow for easy switching to alternative data providers in the future. The data fetching layer is abstracted from the dominance calculation logic.
+The calculation logic is separated from the data source to allow for easy switching to alternative data providers. The data fetching layer is abstracted from the dominance calculation logic.
+
+### Automatic Fallback Mechanism
+
+The feature implements automatic fallback from backend to CoinGecko:
+- **Primary**: Backend API (`/api/dominance`) - returns pre-calculated data
+- **Fallback**: CoinGecko API - fetches raw data and calculates locally
+- **Configuration**: Data source blocking can be configured via `/config` screen
+  - Block default source: Prevents backend API calls
+  - Block alternate source: Prevents CoinGecko fallback
+  - Global blocking: Can block all backend or CoinGecko calls app-wide
+
+### Integration
+
+The feature is integrated into the app:
+- **Feature ID**: `currentDominance`
+- **Store**: Data is cached in `latestStore` to prevent duplicate API calls
+- **Home Page**: Automatically fetches and logs dominance data on app startup
+- **Configuration**: Available in `/config` screen for testing and debugging
 
 ## API Usage
 
-### Endpoint
+### Backend Endpoint (Default)
 
 ```
-GET /api/dominance
+GET https://crypto-proxy-bice.vercel.app/api/dominance
 ```
 
 ### Query Parameters
 
-None (all data is fetched from CoinGecko)
+None
 
 ### Example Request
 
 ```bash
-GET /api/dominance
+GET https://crypto-proxy-bice.vercel.app/api/dominance
 ```
+
+### Automatic Fallback
+
+If the backend API is blocked or unavailable, the app automatically:
+1. Detects the failure/blocking
+2. Falls back to CoinGecko API
+3. Fetches market cap data (2 API calls)
+4. Calculates dominance locally
+5. Returns the same response format
+
+This fallback is transparent to the caller - the `fetchCurrentDominance()` function handles it automatically.
 
 ### Response Format
 
@@ -156,9 +196,43 @@ GET /api/dominance
   - **`dominance`** (number): Others dominance percentage
 - **`timestamp`** (number): Unix timestamp of when the calculation was performed
 
+## Implementation Details
+
+### Code Structure
+
+- **`api.ts`**: Main API functions with automatic fallback logic
+- **`dataSource.ts`**: CoinGecko data fetching (optimized to 2 API calls)
+- **`DominanceCalculator.ts`**: Pure calculation logic (data source agnostic)
+- **`types.ts`**: TypeScript type definitions
+- **`constants.ts`**: CoinGecko API IDs for BTC and ETH
+
+### Usage Example
+
+```typescript
+import { fetchCurrentDominance } from '@/features/dominance/current/api';
+
+// Automatically tries backend, falls back to CoinGecko if needed
+const data = await fetchCurrentDominance();
+
+if (data) {
+  console.log(`BTC Dominance: ${data.btc.dominance}%`);
+  console.log(`ETH Dominance: ${data.eth.dominance}%`);
+  console.log(`Stablecoins Dominance: ${data.stablecoins.dominance}%`);
+  console.log(`Others Dominance: ${data.others.dominance}%`);
+}
+```
+
+### Error Handling
+
+- Backend blocking: Logs warning and automatically tries CoinGecko
+- CoinGecko blocking: Logs error and returns null
+- Network errors: Handled gracefully with appropriate error messages
+- Missing data: Missing stablecoins are logged but don't cause failure (treated as 0)
+
 ## Future Enhancements
 
 - **Historical Dominance**: Track dominance over time (future feature)
 - **Additional Categories**: Support for other categories (e.g., Layer 1, Layer 2, DeFi tokens)
-- **Multiple Data Sources**: Support for alternative data providers beyond CoinGecko
+- **Caching**: Add time-based caching to reduce API calls
+- **Real-time Updates**: WebSocket support for live dominance updates
 

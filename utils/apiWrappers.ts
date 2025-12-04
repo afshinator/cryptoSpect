@@ -28,19 +28,19 @@ export interface FeatureApiCallOptions extends Omit<ApiCallOptions, 'featureId' 
  * 
  * @param featureId The feature making the call
  * @param endpointKey The endpoint key to call
- * @param dataSource The data source type ('default' or 'alternate')
+ * @param dataSource The data source type ('primary' or 'secondary')
  * @param options Optional API call options (queryParams, headers, timeout)
  * @returns Promise resolving to the API result with blocking information
  */
 export async function callFeatureEndpoint<T = any>(
   featureId: FeatureId,
   endpointKey: string,
-  dataSource: DataSource = 'default',
+  dataSource: DataSource = 'primary',
   options: FeatureApiCallOptions = {}
 ): Promise<BlockedApiResult<T>> {
   // Check if endpoint is blocked for this feature
   if (shouldBlockEndpoint(featureId, endpointKey, dataSource)) {
-    const dataSourceName = dataSource === 'default' ? 'default data source' : 'alternate data source';
+    const dataSourceName = dataSource === 'primary' ? 'primary data source' : 'secondary data source';
     const blockingReason = `Service temporarily unavailable: ${dataSourceName} for ${featureId} is blocked`;
     log(`[${endpointKey}] ${blockingReason}`, TMI);
     

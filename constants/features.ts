@@ -8,10 +8,10 @@ export type FeatureId = 'currentVolatility' | 'currentDominance';
 
 /**
  * Data source type for features
- * 'default' = primary/backend API
- * 'alternate' = fallback/alternative API
+ * 'primary' = backend API (default)
+ * 'secondary' = CoinGecko API (fallback)
  */
-export type DataSource = 'default' | 'alternate';
+export type DataSource = 'primary' | 'secondary';
 
 /**
  * Feature configuration
@@ -25,8 +25,8 @@ export interface FeatureConfig {
   description: string;
   /** Endpoint keys used by this feature */
   endpoints: string[];
-  /** Whether this feature supports alternate data sources */
-  supportsAlternateSource: boolean;
+  /** Whether this feature supports secondary data sources */
+  supportsSecondarySource: boolean;
 }
 
 /**
@@ -38,14 +38,14 @@ export const FEATURES: Record<FeatureId, FeatureConfig> = {
     name: 'Current Volatility',
     description: 'Fetches and displays current cryptocurrency market volatility data',
     endpoints: ['CRYPTO_PROXY_CURRENT_VOLATILITY'],
-    supportsAlternateSource: false, // Will be true when alternate source is added
+    supportsSecondarySource: false, // Will be true when secondary source is added
   },
   currentDominance: {
     id: 'currentDominance',
     name: 'Current Dominance',
     description: 'Fetches and displays current cryptocurrency market dominance data (BTC, ETH, stablecoins, others)',
     endpoints: ['CRYPTO_PROXY_CURRENT_DOMINANCE', 'COINGECKO_GLOBAL', 'COINGECKO_COINS_MARKETS'],
-    supportsAlternateSource: true,
+    supportsSecondarySource: true,
   },
 };
 

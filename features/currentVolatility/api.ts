@@ -30,11 +30,12 @@ export interface CurrentVolatilityOptions {
 /**
  * Fetches current volatility data from the Crypto Proxy API
  * @param options Optional parameters for the request
+ * @param dataSource The data source to use ('primary' or 'secondary')
  * @returns Promise resolving to the current volatility data or null if error
  */
 export async function fetchCurrentVolatility(
   options: CurrentVolatilityOptions = {},
-  dataSource: 'default' | 'alternate' = 'default'
+  dataSource: 'primary' | 'secondary' = 'primary'
 ): Promise<CurrentVolatilityResponse | null> {
   const { per_page } = options;
 
