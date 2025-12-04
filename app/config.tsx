@@ -1,12 +1,14 @@
 // app/config.tsx
 // API Blocking Configuration Screen
 
+import { BorderedSection } from '@/components/bordered-section';
 import { ScreenContainer } from '@/components/ScreenContainer';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { getAllFeatures, DataSource } from '@/constants/features';
 import { useApiBlockingStore, getEffectivePreferences } from '@/stores/apiBlockingStore';
-import { StyleSheet, Switch, View, TouchableOpacity } from 'react-native';
+import SegmentedControl from '@react-native-segmented-control/segmented-control';
+import { StyleSheet, Switch, View } from 'react-native';
 
 export default function ConfigScreen() {
   const { 
@@ -21,10 +23,6 @@ export default function ConfigScreen() {
   } = useApiBlockingStore();
   const features = getAllFeatures();
 
-  const toggleDataSource = (current: DataSource): DataSource => {
-    return current === 'primary' ? 'secondary' : 'primary';
-  };
-
   return (
     <ScreenContainer>
       <ThemedView style={styles.container}>
@@ -33,7 +31,7 @@ export default function ConfigScreen() {
         </ThemedText>
 
         {/* Global Data Source Preferences */}
-        <ThemedView style={styles.section}>
+        <BorderedSection marginBottom={32}>
           <ThemedText type="subtitle" style={styles.sectionTitle}>
             Global Data Source Preferences
           </ThemedText>
@@ -42,25 +40,24 @@ export default function ConfigScreen() {
           </ThemedText>
 
           {/* Preferred Data Source */}
-          <View style={styles.switchRow}>
-            <View style={styles.switchLabelContainer}>
-              <ThemedText type="default">Preferred Data Source</ThemedText>
-              <ThemedText type="small" colorVariant="textSubtle">
-                {globalPreferences.preferredDataSource === 'primary' 
-                  ? 'Primary (Backend API)' 
-                  : 'Secondary (CoinGecko API)'}
-              </ThemedText>
-            </View>
-            <TouchableOpacity
-              style={styles.toggleButton}
-              onPress={() => setGlobalPreferences({ 
-                preferredDataSource: toggleDataSource(globalPreferences.preferredDataSource) 
-              })}
-            >
-              <ThemedText type="defaultSemiBold">
-                {globalPreferences.preferredDataSource === 'primary' ? 'Primary' : 'Secondary'}
-              </ThemedText>
-            </TouchableOpacity>
+          <View style={styles.segmentedControlContainer}>
+            <ThemedText type="default" style={styles.segmentedControlLabel}>
+              Preferred Data Source
+            </ThemedText>
+            <SegmentedControl
+              values={['Primary', 'Secondary']}
+              selectedIndex={globalPreferences.preferredDataSource === 'primary' ? 0 : 1}
+              onChange={(event) => {
+                setGlobalPreferences({ 
+                  preferredDataSource: event.nativeEvent.selectedSegmentIndex === 0 ? 'primary' : 'secondary'
+                });
+              }}
+            />
+            <ThemedText type="small" colorVariant="textSubtle" style={styles.segmentedControlDescription}>
+              {globalPreferences.preferredDataSource === 'primary' 
+                ? 'Primary (Backend API)' 
+                : 'Secondary (CoinGecko API)'}
+            </ThemedText>
           </View>
 
           {/* Enable Fallback */}
@@ -78,10 +75,10 @@ export default function ConfigScreen() {
               thumbColor={globalPreferences.enableFallback ? '#fff' : '#f4f3f4'}
             />
           </View>
-        </ThemedView>
+        </BorderedSection>
 
         {/* Global API Blocking */}
-        <ThemedView style={styles.section}>
+        <BorderedSection marginBottom={32}>
           <ThemedText type="subtitle" style={styles.sectionTitle}>
             Global API Blocking
           </ThemedText>
@@ -120,7 +117,7 @@ export default function ConfigScreen() {
               thumbColor={globalBlocking.blockCoinGecko ? '#fff' : '#f4f3f4'}
             />
           </View>
-        </ThemedView>
+        </BorderedSection>
 
         {/* Feature-Specific Settings */}
         <ThemedView style={styles.section}>
@@ -141,7 +138,7 @@ export default function ConfigScreen() {
             const effectivePrefs = getEffectivePreferences(feature.id);
 
             return (
-              <ThemedView key={feature.id} style={styles.featureSection}>
+              <BorderedSection key={feature.id}>
                 <ThemedText type="defaultSemiBold" style={styles.featureName}>
                   {feature.name}
                 </ThemedText>
@@ -171,25 +168,24 @@ export default function ConfigScreen() {
                 {!prefs.useGlobalPreferences && (
                   <>
                     {/* Preferred Data Source */}
-                    <View style={styles.switchRow}>
-                      <View style={styles.switchLabelContainer}>
-                        <ThemedText type="default">Preferred Data Source</ThemedText>
-                        <ThemedText type="small" colorVariant="textSubtle">
-                          {prefs.preferredDataSource === 'primary' 
-                            ? 'Primary (Backend API)' 
-                            : 'Secondary (CoinGecko API)'}
-                        </ThemedText>
-                      </View>
-                      <TouchableOpacity
-                        style={styles.toggleButton}
-                        onPress={() => setFeaturePreferences(feature.id, { 
-                          preferredDataSource: toggleDataSource(prefs.preferredDataSource) 
-                        })}
-                      >
-                        <ThemedText type="defaultSemiBold">
-                          {prefs.preferredDataSource === 'primary' ? 'Primary' : 'Secondary'}
-                        </ThemedText>
-                      </TouchableOpacity>
+                    <View style={styles.segmentedControlContainer}>
+                      <ThemedText type="default" style={styles.segmentedControlLabel}>
+                        Preferred Data Source
+                      </ThemedText>
+                      <SegmentedControl
+                        values={['Primary', 'Secondary']}
+                        selectedIndex={prefs.preferredDataSource === 'primary' ? 0 : 1}
+                        onChange={(event) => {
+                          setFeaturePreferences(feature.id, { 
+                            preferredDataSource: event.nativeEvent.selectedSegmentIndex === 0 ? 'primary' : 'secondary'
+                          });
+                        }}
+                      />
+                      <ThemedText type="small" colorVariant="textSubtle" style={styles.segmentedControlDescription}>
+                        {prefs.preferredDataSource === 'primary' 
+                          ? 'Primary (Backend API)' 
+                          : 'Secondary (CoinGecko API)'}
+                      </ThemedText>
                     </View>
 
                     {/* Enable Fallback */}
@@ -246,7 +242,7 @@ export default function ConfigScreen() {
                     disabled={!feature.supportsSecondarySource}
                   />
                 </View>
-              </ThemedView>
+              </BorderedSection>
             );
           })}
         </ThemedView>
@@ -272,13 +268,6 @@ const styles = StyleSheet.create({
   sectionDescription: {
     marginBottom: 16,
   },
-  featureSection: {
-    marginBottom: 24,
-    padding: 16,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: '#e0e0e0',
-  },
   featureName: {
     marginBottom: 4,
   },
@@ -296,13 +285,14 @@ const styles = StyleSheet.create({
     flex: 1,
     marginRight: 16,
   },
-  toggleButton: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 8,
-    backgroundColor: '#e0e0e0',
-    minWidth: 100,
-    alignItems: 'center',
+  segmentedControlContainer: {
+    marginBottom: 16,
+  },
+  segmentedControlLabel: {
+    marginBottom: 8,
+  },
+  segmentedControlDescription: {
+    marginTop: 8,
   },
   disabledRow: {
     opacity: 0.5,

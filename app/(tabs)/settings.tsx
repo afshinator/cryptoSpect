@@ -1,3 +1,4 @@
+import { BorderedSection } from '@/components/bordered-section';
 import { ScreenContainer } from '@/components/ScreenContainer';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
@@ -28,7 +29,7 @@ export default function SettingsScreen() {
         </ThemedText>
 
         {/* Light/Dark Mode */}
-        <ThemedView style={styles.section}>
+        <BorderedSection>
           <ThemedText type="subtitle" style={styles.sectionTitle}>
             Theme Mode
           </ThemedText>
@@ -51,10 +52,10 @@ export default function SettingsScreen() {
               </TouchableOpacity>
             ))}
           </View>
-        </ThemedView>
+        </BorderedSection>
 
         {/* Font Scale */}
-        <ThemedView style={styles.section}>
+        <BorderedSection>
           <ThemedText type="subtitle" style={styles.sectionTitle}>
             Font Scale: {fontScale.toFixed(1)}x
           </ThemedText>
@@ -77,10 +78,10 @@ export default function SettingsScreen() {
               </TouchableOpacity>
             ))}
           </View>
-        </ThemedView>
+        </BorderedSection>
 
         {/* Currency */}
-        <ThemedView style={styles.section}>
+        <BorderedSection>
           <ThemedText type="subtitle" style={styles.sectionTitle}>
             Currency
           </ThemedText>
@@ -103,10 +104,10 @@ export default function SettingsScreen() {
               </TouchableOpacity>
             ))}
           </View>
-        </ThemedView>
+        </BorderedSection>
 
         {/* Compact Mode */}
-        <ThemedView style={styles.section}>
+        <BorderedSection>
           <View style={styles.switchRow}>
             <ThemedText type="subtitle" style={styles.sectionTitle}>
               Compact Mode
@@ -121,10 +122,10 @@ export default function SettingsScreen() {
           <ThemedText type="small" colorVariant="textSubtle">
             Reduce spacing and padding for a more compact layout
           </ThemedText>
-        </ThemedView>
+        </BorderedSection>
 
         {/* API Configuration Link */}
-        <ThemedView style={styles.section}>
+        <BorderedSection>
           <ThemedText type="subtitle" style={styles.sectionTitle}>
             API Configuration
           </ThemedText>
@@ -136,7 +137,7 @@ export default function SettingsScreen() {
           <ThemedText type="small" colorVariant="textSubtle">
             Block API calls on a per-feature basis
           </ThemedText>
-        </ThemedView>
+        </BorderedSection>
       </ThemedView>
     </ScreenContainer>
   );
@@ -149,9 +150,6 @@ const styles = StyleSheet.create({
   },
   title: {
     marginBottom: 24,
-  },
-  section: {
-    marginBottom: 32,
   },
   sectionTitle: {
     marginBottom: 12,
