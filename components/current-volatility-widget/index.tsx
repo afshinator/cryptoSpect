@@ -30,7 +30,7 @@ export function CurrentVolatilityWidget({
   // Calculate background color based on average severity
   const avgSeverity = calculateAverageSeverity(data.level1h, data.level24h);
   const baseColor = getSeverityColor(avgSeverity);
-  const widgetBackgroundColor = {
+  const widgetGradientBackground = {
     light: `${baseColor.light}${BACKGROUND_OPACITY_HEX}`,
     dark: `${baseColor.dark}${BACKGROUND_OPACITY_HEX}`,
   };
@@ -51,7 +51,7 @@ export function CurrentVolatilityWidget({
       <BorderedSection
         padding={mode === 'compact' ? Spacing.sm : Spacing.md}
         marginBottom={Spacing.md}
-        backgroundColor={widgetBackgroundColor}
+        gradientBackground={widgetGradientBackground}
         backgroundEmoji="⚡"
         emojiPlacement={emojiPlacement}
         emojiOpacity={0.3}
