@@ -21,6 +21,7 @@ export function CurrentVolatilityWidget({
   data,
   mode = 'normal',
   onPress,
+  emojiPlacement = 'upperLeft',
 }: CurrentVolatilityWidgetProps) {
   const [showTooltip, setShowTooltip] = useState(false);
 
@@ -50,7 +51,7 @@ export function CurrentVolatilityWidget({
         marginBottom={Spacing.md}
         backgroundColor={widgetBackgroundColor}
         backgroundEmoji="⚡"
-        emojiPlacement="upperLeft"
+        emojiPlacement={emojiPlacement}
         emojiOpacity={0.3}
         emojiSize={30}
       >

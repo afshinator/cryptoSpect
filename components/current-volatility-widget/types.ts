@@ -17,6 +17,8 @@ export interface CurrentVolatilityWidgetProps {
   mode?: 'compact' | 'normal';
   /** Optional callback when widget is tapped */
   onPress?: () => void;
+  /** Placement of the background emoji (default: 'upperRight') */
+  emojiPlacement?: 'center' | 'upperRight' | 'upperLeft';
 }
 
 export interface VolatilityScaleProps {
