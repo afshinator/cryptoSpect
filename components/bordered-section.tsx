@@ -3,9 +3,9 @@
 
 import { ThemedView, ThemedViewProps } from '@/components/themed-view';
 import { useThemeColor } from '@/hooks/use-theme-color';
-import { StyleSheet, Text, View, ViewStyle } from 'react-native';
+import { Platform, StyleSheet, Text, View, ViewStyle } from 'react-native';
 
-export type EmojiPlacement = 'center' | 'upperRight';
+export type EmojiPlacement = 'center' | 'upperRight' | 'upperLeft';
 export type BorderType = 'default' | 'double' | 'dashed' | 'thick';
 
 export interface BorderedSectionProps extends Omit<ThemedViewProps, 'style'> {
@@ -65,9 +65,27 @@ export function BorderedSection({
   };
 
   // Determine emoji container style based on placement
-  const emojiContainerStyle = emojiPlacement === 'upperRight' 
-    ? styles.emojiContainerUpperRight 
-    : styles.emojiContainerCenter;
+  const getEmojiContainerStyle = (): ViewStyle => {
+    const baseStyle = 
+      emojiPlacement === 'upperRight' 
+        ? styles.emojiContainerUpperRight 
+        : emojiPlacement === 'upperLeft'
+        ? styles.emojiContainerUpperLeft
+        : styles.emojiContainerCenter;
+    
+    // Apply padding only on desktop for upperLeft placement
+    if (emojiPlacement === 'upperLeft' && Platform.OS === 'web') {
+      return {
+        ...baseStyle,
+        paddingTop: 8,
+        paddingLeft: 8,
+      };
+    }
+    
+    return baseStyle;
+  };
+  
+  const emojiContainerStyle = getEmojiContainerStyle();
 
   // For double border, we need to wrap in an additional view
   if (borderType === 'double') {
@@ -181,6 +199,14 @@ const styles = StyleSheet.create({
     alignItems: 'flex-end',
     paddingTop: 8,
     paddingRight: 8,
+    zIndex: 0,
+  },
+  emojiContainerUpperLeft: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    justifyContent: 'flex-start',
+    alignItems: 'flex-start',
     zIndex: 0,
   },
   emoji: {

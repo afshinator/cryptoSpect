@@ -6,7 +6,7 @@ import { ThemedView } from '@/components/themed-view';
 import { BorderRadius, Colors, Spacing } from '@/constants/theme';
 import { useThemeColor } from '@/hooks/use-theme-color';
 import { StyleSheet } from 'react-native';
-import { BADGE_OPACITY_HEX, EMOJI_LEVEL } from './constants';
+import { EMOJI_LEVEL } from './constants';
 import type { VolatilityBadgeProps } from './types';
 
 export function VolatilityBadge({
@@ -48,9 +48,9 @@ export function VolatilityBadge({
       style={[
         styles.badge,
         compact && styles.badgeCompact,
-        {
-          backgroundColor: `${bgColor}${BADGE_OPACITY_HEX}`,
-        },
+        // {
+        //   backgroundColor: `${bgColor}${BADGE_OPACITY_HEX}`,
+        // },
       ]}
       transparent
     >

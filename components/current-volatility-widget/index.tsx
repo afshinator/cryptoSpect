@@ -7,11 +7,11 @@ import { ThemedView } from '@/components/themed-view';
 import { Colors, Spacing } from '@/constants/theme';
 import { useState } from 'react';
 import { StyleSheet, TouchableOpacity } from 'react-native';
-import { BACKGROUND_OPACITY_HEX, TOOLTIP_AUTO_DISMISS_MS, TOOLTIP_BG_OPACITY } from './constants';
-import { calculateAverageSeverity, getSeverityColor, getVolatilityContext } from './utils';
 import { CompactView } from './CompactView';
+import { BACKGROUND_OPACITY_HEX, TOOLTIP_AUTO_DISMISS_MS, TOOLTIP_BG_OPACITY } from './constants';
 import { NormalView } from './NormalView';
 import type { CurrentVolatilityWidgetProps } from './types';
+import { calculateAverageSeverity, getSeverityColor, getVolatilityContext } from './utils';
 
 /**
  * Displays current market volatility metrics with 1h and 24h data.
@@ -50,9 +50,9 @@ export function CurrentVolatilityWidget({
         marginBottom={Spacing.md}
         backgroundColor={widgetBackgroundColor}
         backgroundEmoji="⚡"
-        emojiPlacement="upperRight"
-        emojiOpacity={0.1}
-        emojiSize={60}
+        emojiPlacement="upperLeft"
+        emojiOpacity={0.3}
+        emojiSize={30}
       >
         {mode === 'compact' ? (
           <CompactView data={data} contextEmoji={contextEmoji} />
