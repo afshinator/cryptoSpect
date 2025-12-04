@@ -4,7 +4,7 @@
 /**
  * Feature identifier type
  */
-export type FeatureId = 'currentVolatility';
+export type FeatureId = 'currentVolatility' | 'currentDominance';
 
 /**
  * Data source type for features
@@ -39,6 +39,13 @@ export const FEATURES: Record<FeatureId, FeatureConfig> = {
     description: 'Fetches and displays current cryptocurrency market volatility data',
     endpoints: ['CRYPTO_PROXY_CURRENT_VOLATILITY'],
     supportsAlternateSource: false, // Will be true when alternate source is added
+  },
+  currentDominance: {
+    id: 'currentDominance',
+    name: 'Current Dominance',
+    description: 'Fetches and displays current cryptocurrency market dominance data (BTC, ETH, stablecoins, others)',
+    endpoints: ['CRYPTO_PROXY_CURRENT_DOMINANCE', 'COINGECKO_GLOBAL', 'COINGECKO_COINS_MARKETS'],
+    supportsAlternateSource: true,
   },
 };
 

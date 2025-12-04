@@ -1,6 +1,7 @@
 // constants/stores.ts
 
 import { CurrentVolatilityResponse } from '@/features/currentVolatility/api';
+import { CurrentDominanceResponse } from '@/features/dominance/current/api';
 import { DEFAULT_CURRENCY } from './currency';
 
 // AsyncStorage keys
@@ -18,5 +19,6 @@ export const DEFAULT_PREFS = {
 // Default latest values
 export const DEFAULT_LATEST = {
   currentVolatilityData: null as CurrentVolatilityResponse | null,
+  currentDominanceData: null as CurrentDominanceResponse | null,
 } as const;
 

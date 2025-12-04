@@ -7,12 +7,18 @@ import ParallaxScrollView from '@/components/parallax-scroll-view';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { fetchCurrentVolatility } from '@/features/currentVolatility/api';
+import { fetchCurrentDominance } from '@/features/dominance/current/api';
 import { useLatestStore } from '@/stores/latestStore';
 import { log, LOG } from '@/utils/log';
 import { Link } from 'expo-router';
 
 export default function HomeScreen() {
-  const { currentVolatilityData, setCurrentVolatilityData } = useLatestStore();
+  const { 
+    currentVolatilityData, 
+    setCurrentVolatilityData,
+    currentDominanceData,
+    setCurrentDominanceData,
+  } = useLatestStore();
 
   useEffect(() => {
     // Only fetch if data is null
@@ -24,7 +30,18 @@ export default function HomeScreen() {
         }
       });
     }
-  }, [currentVolatilityData, setCurrentVolatilityData]);
+
+    // Only fetch dominance data if it's null (fetch once at startup)
+    if (currentDominanceData === null) {
+      fetchCurrentDominance().then((data) => {
+        if (data) {
+          setCurrentDominanceData(data);
+          log(`💪 Current dominance data: ${JSON.stringify(data)}`, LOG);
+          log(`💪 BTC: ${data.btc.dominance}%, ETH: ${data.eth.dominance}%, Stablecoins: ${data.stablecoins.dominance}%, Others: ${data.others.dominance}%`, LOG);
+        }
+      });
+    }
+  }, [currentVolatilityData, setCurrentVolatilityData, currentDominanceData, setCurrentDominanceData]);
   return (
     <ParallaxScrollView
       headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
