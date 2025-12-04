@@ -58,7 +58,7 @@ async function fetchFromCoinGecko(): Promise<CurrentDominanceResponse | null> {
   }
   
   try {
-    log('💪 Fetching dominance data from CoinGecko (alternate source)🏵️...', LOG);
+    log('💪 Fetching dominance data from CoinGecko (alternate source)🏵️...', TMI);
     
     // Fetch all market cap data from CoinGecko
     const marketCapData = await fetchAllMarketCapData();
@@ -66,7 +66,7 @@ async function fetchFromCoinGecko(): Promise<CurrentDominanceResponse | null> {
     // Calculate dominance using the calculator
     const dominanceData = calculateDominance(marketCapData);
     
-    log('💪 Current dominance data calculated successfully from CoinGecko', LOG);
+    log('💪 Current dominance data calculated successfully from CoinGecko', TMI);
     return dominanceData;
   } catch (error: any) {
     const errorMessage = error?.message || 'Unknown error calculating dominance from CoinGecko';

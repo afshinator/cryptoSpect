@@ -2,10 +2,10 @@
 // Wrapper functions for feature API calls that handle blocking checks
 // Features should use these instead of calling callEndpoint directly
 
-import { FeatureId, DataSource } from '@/constants/features';
+import { DataSource, FeatureId } from '@/constants/features';
 import { shouldBlockEndpoint } from '@/stores/apiBlockingStore';
-import { callEndpoint, ApiCallOptions, ApiResult } from './api';
-import { ERR, log, WARN } from './log';
+import { ApiCallOptions, ApiResult, callEndpoint } from './api';
+import { log, TMI } from './log';
 
 /**
  * Extended API result that includes blocking information
@@ -40,8 +40,9 @@ export async function callFeatureEndpoint<T = any>(
 ): Promise<BlockedApiResult<T>> {
   // Check if endpoint is blocked for this feature
   if (shouldBlockEndpoint(featureId, endpointKey, dataSource)) {
-    const blockingReason = `Service temporarily unavailable: ${featureId} feature is blocked`;
-    log(`[${endpointKey}] ${blockingReason}`, WARN);
+    const dataSourceName = dataSource === 'default' ? 'default data source' : 'alternate data source';
+    const blockingReason = `Service temporarily unavailable: ${dataSourceName} for ${featureId} is blocked`;
+    log(`[${endpointKey}] ${blockingReason}`, TMI);
     
     return {
       data: null,

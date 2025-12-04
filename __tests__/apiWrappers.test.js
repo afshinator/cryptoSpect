@@ -3,7 +3,7 @@
 import { callFeatureEndpoint } from '../utils/apiWrappers';
 import { callEndpoint } from '../utils/api';
 import { shouldBlockEndpoint } from '../stores/apiBlockingStore';
-import { log, WARN } from '../utils/log';
+import { log, TMI } from '../utils/log';
 
 // Mock dependencies
 jest.mock('../utils/api');
@@ -42,7 +42,7 @@ describe('apiWrappers.ts', () => {
       expect(result.status).toBe(503);
       expect(result.blocked).toBe(true);
       expect(result.error).toContain('Service temporarily unavailable');
-      expect(result.error).toContain('currentVolatility feature is blocked');
+      expect(result.error).toContain('default data source for currentVolatility is blocked');
       expect(callEndpoint).not.toHaveBeenCalled();
       expect(shouldBlockEndpoint).toHaveBeenCalledWith(
         'currentVolatility',
@@ -51,7 +51,30 @@ describe('apiWrappers.ts', () => {
       );
       expect(log).toHaveBeenCalledWith(
         expect.stringContaining('Service temporarily unavailable'),
-        WARN
+        TMI
+      );
+    });
+
+    it('returns blocked result with correct message for alternate data source', async () => {
+      shouldBlockEndpoint.mockReturnValue(true);
+
+      const result = await callFeatureEndpoint(
+        'currentDominance',
+        'COINGECKO_GLOBAL',
+        'alternate',
+        {}
+      );
+
+      expect(result.success).toBe(false);
+      expect(result.status).toBe(503);
+      expect(result.blocked).toBe(true);
+      expect(result.error).toContain('Service temporarily unavailable');
+      expect(result.error).toContain('alternate data source for currentDominance is blocked');
+      expect(callEndpoint).not.toHaveBeenCalled();
+      expect(shouldBlockEndpoint).toHaveBeenCalledWith(
+        'currentDominance',
+        'COINGECKO_GLOBAL',
+        'alternate'
       );
     });
 

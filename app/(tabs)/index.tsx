@@ -1,5 +1,5 @@
 import { Image } from 'expo-image';
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { Platform, StyleSheet } from 'react-native';
 
 import { HelloWave } from '@/components/hello-wave';
@@ -9,7 +9,7 @@ import { ThemedView } from '@/components/themed-view';
 import { fetchCurrentVolatility } from '@/features/currentVolatility/api';
 import { fetchCurrentDominance } from '@/features/dominance/current/api';
 import { useLatestStore } from '@/stores/latestStore';
-import { log, LOG } from '@/utils/log';
+import { log, LOG, TMI } from '@/utils/log';
 import { Link } from 'expo-router';
 
 export default function HomeScreen() {
@@ -20,28 +20,40 @@ export default function HomeScreen() {
     setCurrentDominanceData,
   } = useLatestStore();
 
+  // Use refs to track if fetches are in progress to prevent duplicate calls
+  const volatilityFetchInProgress = useRef(false);
+  const dominanceFetchInProgress = useRef(false);
+
   useEffect(() => {
-    // Only fetch if data is null
-    if (currentVolatilityData === null) {
+    // Only fetch if data is null and not already fetching
+    if (currentVolatilityData === null && !volatilityFetchInProgress.current) {
+      volatilityFetchInProgress.current = true;
       fetchCurrentVolatility().then((data) => {
+        volatilityFetchInProgress.current = false;
         if (data) {
           setCurrentVolatilityData(data);
           log(`⚡ Current volatility data stored: ${JSON.stringify(data)}`, LOG);
         }
+      }).catch(() => {
+        volatilityFetchInProgress.current = false;
       });
     }
 
-    // Only fetch dominance data if it's null (fetch once at startup)
-    if (currentDominanceData === null) {
+    // Only fetch dominance data if it's null and not already fetching
+    if (currentDominanceData === null && !dominanceFetchInProgress.current) {
+      dominanceFetchInProgress.current = true;
       fetchCurrentDominance().then((data) => {
+        dominanceFetchInProgress.current = false;
         if (data) {
           setCurrentDominanceData(data);
-          log(`💪 Current dominance data: ${JSON.stringify(data)}`, LOG);
+          log(`💪 Current dominance data: ${JSON.stringify(data)}`, TMI);
           log(`💪 BTC: ${data.btc.dominance}%, ETH: ${data.eth.dominance}%, Stablecoins: ${data.stablecoins.dominance}%, Others: ${data.others.dominance}%`, LOG);
         }
+      }).catch(() => {
+        dominanceFetchInProgress.current = false;
       });
     }
-  }, [currentVolatilityData, setCurrentVolatilityData, currentDominanceData, setCurrentDominanceData]);
+  }, [currentVolatilityData, currentDominanceData]); // Removed setters - they're stable references
   return (
     <ParallaxScrollView
       headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
