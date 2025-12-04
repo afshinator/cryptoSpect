@@ -1,17 +1,27 @@
 // __tests__/currentVolatility.integration.test.js
 // Integration test that calls the real API
 // Run with: npm test -- __tests__/currentVolatility.integration.test.js
+// Requires: EXPO_PUBLIC_BACKEND_BASE_URL environment variable to be set
 
 import {
   fetchCurrentVolatility,
   fetchAndLogCurrentVolatility,
 } from '../features/currentVolatility/api';
 
+const hasRealApiUrl = process.env.EXPO_PUBLIC_BACKEND_BASE_URL && 
+  !process.env.EXPO_PUBLIC_BACKEND_BASE_URL.includes('test-crypto-proxy.example.com');
+
 describe('Current Volatility API Integration Tests', () => {
   // These tests call the real API
   // They may be slow and require network access
+  // Skip if real API URL is not configured
+  beforeAll(() => {
+    if (!hasRealApiUrl) {
+      console.warn('⚠️  Skipping integration tests: EXPO_PUBLIC_BACKEND_BASE_URL not set or using test URL');
+    }
+  });
 
-  it('fetches current volatility data from real API', async () => {
+  (hasRealApiUrl ? it : it.skip)('fetches current volatility data from real API', async () => {
     const data = await fetchCurrentVolatility();
 
     expect(data).not.toBeNull();
@@ -39,7 +49,7 @@ describe('Current Volatility API Integration Tests', () => {
     expect(data.marketCapCoverage).toBeLessThanOrEqual(1);
   }, 15000); // 15 second timeout for real API call
 
-  it('fetches current volatility data with custom per_page', async () => {
+  (hasRealApiUrl ? it : it.skip)('fetches current volatility data with custom per_page', async () => {
     const data = await fetchCurrentVolatility({ per_page: 100 });
 
     expect(data).not.toBeNull();
@@ -47,7 +57,7 @@ describe('Current Volatility API Integration Tests', () => {
     expect(data).toHaveProperty('volatility24h');
   }, 15000);
 
-  it('logs current volatility data using log function', async () => {
+  (hasRealApiUrl ? it : it.skip)('logs current volatility data using log function', async () => {
     // Mock the log function to capture calls
     const { log } = require('../utils/log');
     const originalLog = log;

@@ -1,6 +1,10 @@
 // constants/currency.ts
 
-export const EXCHANGE_RATE_API_BASE_URL = 'https://open.er-api.com/v6/latest/USD'
+import { EXCHANGE_RATE_API_BASE_URL } from "./urls";
+
+// Re-export for backward compatibility
+export { EXCHANGE_RATE_API_BASE_URL };
+
 // Refresh interval moved to constants/apiConfig.ts - re-exported for backward compatibility
 
 export interface ExchangeRateCache {

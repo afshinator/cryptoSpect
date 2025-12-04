@@ -1,9 +1,7 @@
 // constants/coinGecko.ts
 
 import { SupportedCurrency } from "./currency";
-
-// API Constants
-export const COINGECKO_BASE_URL = "https://api.coingecko.com/api/v3";
+import { COINGECKO_BASE_URL } from "./urls";
 
 // Endpoint Paths (relative to the base URL)
 export const COINGECKO_GLOBAL_PATH = "/global";

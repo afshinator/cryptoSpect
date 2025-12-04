@@ -7,6 +7,7 @@ import {
   COINGECKO_GLOBAL_DATA_ENDPOINT,
   COINGECKO_SEARCH_ENDPOINT,
 } from "./coinGecko";
+import { CRYPTO_PROXY_BASE_URL } from "./urls";
 
 /**
  * Endpoint configuration interface
@@ -32,7 +33,6 @@ export interface EndpointConfig {
 
 /**
  * Registry of all API endpoints
- * Add new endpoints here as they are created
  */
 export const ENDPOINTS: Record<string, EndpointConfig> = {
   // CoinGecko endpoints
@@ -79,7 +79,7 @@ export const ENDPOINTS: Record<string, EndpointConfig> = {
   // Crypto Proxy endpoints
   CRYPTO_PROXY_CURRENT_VOLATILITY: {
     id: 'crypto-proxy-current-volatility',
-    url: 'https://crypto-proxy-bice.vercel.app/api/volatility',
+    url: `${CRYPTO_PROXY_BASE_URL}/api/volatility`,
     name: 'Crypto Proxy Current Volatility',
     enabled: true,
     stats: {
