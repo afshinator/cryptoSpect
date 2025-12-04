@@ -53,6 +53,19 @@ export default function TestsIndexScreen() {
               </ThemedView>
             </Pressable>
           </Link>
+
+          <Link href="/tests/current-volatility-widget-demo" asChild>
+            <Pressable style={linkItemStyle}>
+              <ThemedView style={styles.testItemContent}>
+                <ThemedText type="subtitle" style={styles.testItemTitle}>
+                  CurrentVolatilityWidget Component
+                </ThemedText>
+                <ThemedText colorVariant="textSubtle" style={styles.testItemDescription}>
+                  View all volatility level combinations, market conditions, and display modes including extreme conditions
+                </ThemedText>
+              </ThemedView>
+            </Pressable>
+          </Link>
         </ThemedView>
       </ThemedView>
     </ScreenContainer>
