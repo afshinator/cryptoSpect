@@ -7,14 +7,14 @@ import { CurrentVolatilityWidget } from '@/components/CurrentVolatilityWidget';
 import ParallaxScrollView from '@/components/parallax-scroll-view';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
-import { VolatilityRankingATRP } from '@/components/volatility-ranking-atrp-chart/VolatilityRankingATRP';
+import { VolatilityRankingATRP } from '@/components/volatility-ranking-atrp-chart';
 import { fetchCurrentVolatility } from '@/features/currentVolatility/api';
 import { fetchCurrentDominance } from '@/features/dominance/current/api';
+import { buildCoinMaps, fetchMarkets } from '@/features/marketsData/api';
 import { fetchVwatr } from '@/features/vwatr/api';
 import { useLatestStore } from '@/stores/latestStore';
 import { usePrefsStore } from '@/stores/prefsStore';
 import { log, LOG, TMI } from '@/utils/log';
-import { fetchMarkets } from '@/utils/markets';
 import { Link } from 'expo-router';
 
 export default function HomeScreen() {
@@ -27,6 +27,7 @@ export default function HomeScreen() {
     setVwatrData,
     marketsData,
     setMarketsData,
+    setCoinMaps,
   } = useLatestStore();
   const { compactMode } = usePrefsStore();
 
@@ -77,6 +78,31 @@ export default function HomeScreen() {
       });
     }
 
+    // Only fetch markets data if it's null and not already fetching (with delay)
+    if (marketsData === null && !marketsFetchInProgress.current) {
+      marketsFetchInProgress.current = true;
+      // Wait 3 seconds before making the markets call
+      setTimeout(() => {
+        fetchMarkets().then((data) => {
+          marketsFetchInProgress.current = false;
+          if (data) {
+            setMarketsData(data);
+            console.log('📈 Markets data:', data);
+            console.log('📈 Markets data count:', data.data.length);
+ 
+            log(`📈 Markets data stored: ${data.data.length} coins`, TMI);
+            
+            // Build and store coin maps (id to symbol, symbol to id)
+            const maps = buildCoinMaps(data.data);
+            setCoinMaps(maps);
+            log(`📈 Coin maps built: ${Object.keys(maps.idToSymbol).length} entries`, TMI);
+          }
+        }).catch(() => {
+          marketsFetchInProgress.current = false;
+        });
+      }, 3000);
+    }
+
     // Only fetch VWATR data if it's null and not already fetching
     if (vwatrData === null && !vwatrFetchInProgress.current) {
       vwatrFetchInProgress.current = true;
@@ -89,32 +115,6 @@ export default function HomeScreen() {
       }).catch(() => {
         vwatrFetchInProgress.current = false;
       });
-    }
-
-    // Only fetch markets data if it's null and not already fetching (after everything else with 3 second delay)
-    if (marketsData === null && !marketsFetchInProgress.current) {
-      marketsFetchInProgress.current = true;
-      // Wait 3 seconds before making the markets call
-      setTimeout(() => {
-        fetchMarkets().then((data) => {
-          marketsFetchInProgress.current = false;
-          if (data) {
-            setMarketsData(data);
-            console.log('💰 Markets data:', data);
-            console.log('💰 Markets data count:', data.data.length);
-            console.log('💰 First 5 coins:', data.data.slice(0, 5).map(coin => ({
-              id: coin.id,
-              symbol: coin.symbol,
-              name: coin.name,
-              price: coin.current_price,
-              marketCap: coin.market_cap,
-            })));
-            log(`💰 Markets data stored: ${data.data.length} coins`, LOG);
-          }
-        }).catch(() => {
-          marketsFetchInProgress.current = false;
-        });
-      }, 3000);
     }
   }, [currentVolatilityData, currentDominanceData, vwatrData, marketsData]); // Removed setters - they're stable references
   return (
@@ -160,6 +160,8 @@ export default function HomeScreen() {
             timestamp: vwatrData.timestamp,
             data: vwatrData.data,
           }}
+          mode={compactMode ? 'compact' : 'normal'}
+          description="VWATR 30 day chart"
         />
       )}
 

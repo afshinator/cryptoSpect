@@ -1,4 +1,4 @@
-/* components/VolatilityRankingATRP.tsx
+/* components/volatility-ranking-atrp-chart/VolatilityRankingATRP.tsx
  *
  * DESCRIPTION:
  * This React Native Expo component displays a ranking of cryptocurrencies based on their
@@ -20,81 +20,19 @@
  * - constants/stablecoins.ts
  */
 
-import { CRYPTO_SYMBOL_MAP } from '@/constants/cryptoSymbolsMap';
-import { stablecoins } from '@/constants/stablecoins';
 import { Colors, Opacity, Spacing, typographySizes } from '@/constants/theme';
 import { useThemeColor } from '@/hooks/use-theme-color';
+import { useLatestStore } from '@/stores/latestStore';
 import React, { useMemo } from 'react';
-import { ActivityIndicator, FlatList, StyleSheet, Text, View, ViewStyle } from 'react-native';
+import { ActivityIndicator, FlatList, StyleSheet, Text, View } from 'react-native';
+import { CoinSymbolWithTooltip } from './CoinSymbolWithTooltip';
+import { MOCK_VOLATILITY_DATA } from './constants';
+import type { RankedCoinItem, VolatilityRankingProps } from './types';
+import { buildSymbolToName, createGetShortSymbol, getStablecoinSymbols, processRankedData } from './utils';
 
-// --- DATA STRUCTURES (Mocked) ---
-
-interface VolatilityResult {
-  period: number;
-  vwatr: number;
-  atrp: number; // The metric used for ranking
-}
-
-interface CoinVolatility {
-  symbol: string;
-  results: VolatilityResult[];
-}
-
-interface VolatilityData {
-  type: string;
-  bag: string;
-  periods: number[];
-  maxPeriod: number;
-  timestamp: number;
-  data: CoinVolatility[];
-}
-
-// Mock Data Structure
-const MOCK_VOLATILITY_DATA: VolatilityData = {
-  type: "atrp",
-  bag: "top20_bag",
-  periods: [7, 14, 30],
-  maxPeriod: 30,
-  timestamp: Date.now(),
-  data: [
-    // High Volatility / Non-Stablecoins (Sorted by 30d ATRP for the list)
-    { symbol: "DOT", results: [{ period: 30, vwatr: 0.15, atrp: 7.92 }] }, // Highest
-    { symbol: "ADA", results: [{ period: 30, vwatr: 0.035, atrp: 7.64 }] },
-    { symbol: "LINK", results: [{ period: 30, vwatr: 0.99, atrp: 7.08 }] },
-    { symbol: "DOGE", results: [{ period: 30, vwatr: 0.01, atrp: 6.99 }] },
-    { symbol: "SOL", results: [{ period: 30, vwatr: 9.85, atrp: 6.77 }] },
-    { symbol: "XRP", results: [{ period: 30, vwatr: 0.14, atrp: 6.47 }] },
-    { symbol: "ETH", results: [{ period: 30, vwatr: 211.99, atrp: 6.53 }] },
-    { symbol: "BNB", results: [{ period: 30, vwatr: 47.96, atrp: 5.08 }] },
-    { symbol: "BTC", results: [{ period: 30, vwatr: 4069.72, atrp: 4.33 }] }, // Lowest Non-Stable
-    // Stablecoins (to be filtered out)
-    { symbol: "USDT", results: [{ period: 30, vwatr: 0.0008, atrp: 0.07 }] },
-    { symbol: "USDC", results: [{ period: 30, vwatr: 0.0002, atrp: 0.03 }] },
-    { symbol: "DAI", results: [{ period: 30, vwatr: 0.0005, atrp: 0.05 }] },
-    { symbol: "TUSD", results: [{ period: 30, vwatr: 0.0012, atrp: 0.15 }] },
-    { symbol: "EGLD", results: [{ period: 30, vwatr: 0.5, atrp: 7.15 }] }, // Another non-stable
-  ],
-};
-
-// --- COMPONENT PROPS & STYLING ---
-
-interface VolatilityRankingProps {
-  /** Optional override for the background color of the main card/container. */
-  containerStyle?: ViewStyle;
-  /** Optional override for the title text color. */
-  titleColor?: { light?: string; dark?: string };
-  /** Optional override for the list item text color. */
-  textColor?: { light?: string; dark?: string };
-  /** Optional override for the color of the highest volatility bar. */
-  highVolColor?: { light?: string; dark?: string };
-  /** Optional override for the color of the lowest volatility bar. */
-  lowVolColor?: { light?: string; dark?: string };
-  /** Optional data source (defaults to MOCK_VOLATILITY_DATA for demo) */
-  data?: VolatilityData;
-}
-
-// --- MAIN COMPONENT ---
-
+/**
+ * Main component that displays a ranking of cryptocurrencies by volatility (ATRP)
+ */
 export const VolatilityRankingATRP: React.FC<VolatilityRankingProps> = ({
   containerStyle,
   titleColor,
@@ -102,6 +40,8 @@ export const VolatilityRankingATRP: React.FC<VolatilityRankingProps> = ({
   highVolColor,
   lowVolColor,
   data = MOCK_VOLATILITY_DATA,
+  mode = 'normal',
+  description,
 }) => {
   // --- THEME & COLOR HOOKS ---
   const containerBg = useThemeColor({}, 'cardBackground');
@@ -114,73 +54,36 @@ export const VolatilityRankingATRP: React.FC<VolatilityRankingProps> = ({
   const borderColor = useThemeColor({}, 'border');
   const tintColor = useThemeColor({}, 'tint');
 
+  // --- GET COIN MAPS AND MARKETS DATA FROM STORE ---
+  const { coinMaps, marketsData } = useLatestStore();
+
+  // --- BUILD SYMBOL TO NAME MAP ---
+  const symbolToName = useMemo(
+    () => buildSymbolToName(marketsData?.data, coinMaps),
+    [marketsData, coinMaps]
+  );
+
   // --- STABLECOIN FILTERING LOGIC ---
-  const stablecoinSymbols = useMemo(() => {
-    const symbols = new Set(stablecoins.map(s => s.symbol.toUpperCase()));
-    // Add additional stablecoin symbols that should be filtered out
-    symbols.add('USD');
-    symbols.add('USDS');
-    return symbols;
-  }, []);
+  const stablecoinSymbols = useMemo(() => getStablecoinSymbols(), []);
 
   // --- SYMBOL MAPPING FUNCTION ---
-  // Maps long coin names to short symbols using CRYPTO_SYMBOL_MAP, with fallback to original value
-  const getShortSymbol = useMemo(() => {
-    const mapValues = new Set(Object.values(CRYPTO_SYMBOL_MAP).map(v => v.toUpperCase()));
-    // Create a case-insensitive lookup map for keys (long names)
-    const keyMap = new Map<string, string>();
-    Object.keys(CRYPTO_SYMBOL_MAP).forEach(key => {
-      keyMap.set(key.toUpperCase(), CRYPTO_SYMBOL_MAP[key as keyof typeof CRYPTO_SYMBOL_MAP]);
-    });
-    
-    return (coinNameOrSymbol: string): string => {
-      const upperInput = coinNameOrSymbol.toUpperCase();
-      
-      // Check if it's already a short symbol (exists as a value in the map, case-insensitive)
-      if (mapValues.has(upperInput)) {
-        return upperInput;
-      }
-      
-      // Try to find it as a key in the map (long name like "Bitcoin", "Ethereum") - case-insensitive
-      const foundSymbol = keyMap.get(upperInput);
-      if (foundSymbol) {
-        return foundSymbol;
-      }
-      
-      // Fallback to original value (uppercase for consistency)
-      // This handles cases where API returns lowercase symbols like "btc" -> "BTC"
-      return upperInput;
-    };
-  }, []);
+  const getShortSymbol = useMemo(
+    () => createGetShortSymbol(coinMaps),
+    [coinMaps]
+  );
 
   // --- DATA PROCESSING & RANKING ---
-  const rankedData = useMemo(() => {
-    // 1. Filter out stablecoins by symbol (using short symbol for comparison)
-    const filteredData = data.data.filter(coin => {
-      const shortSymbol = getShortSymbol(coin.symbol);
-      // Filter based on the provided stablecoins list
-      return !stablecoinSymbols.has(shortSymbol);
-    });
-
-    // 2. Extract the 30-day ATRP, map to short symbols, and sort
-    const ranked = filteredData
-      .map(coin => {
-        const result30d = coin.results.find(r => r.period === 30);
-        const shortSymbol = getShortSymbol(coin.symbol);
-        return {
-          symbol: shortSymbol,
-          atrp_30d: result30d?.atrp || 0,
-        };
-      })
-      .filter(item => item.atrp_30d > 0) // Remove any with zero volatility
-      .sort((a, b) => b.atrp_30d - a.atrp_30d); // Sort descending (Highest volatility first)
-
-    // 3. Calculate min/max for bar scaling/coloring
-    const maxAtrp = ranked.length > 0 ? ranked[0].atrp_30d : 1;
-    const minAtrp = ranked.length > 0 ? ranked[ranked.length - 1].atrp_30d : 0;
-
-    return { ranked, maxAtrp, minAtrp };
-  }, [data.data, stablecoinSymbols, getShortSymbol]);
+  const rankedData = useMemo(
+    () => processRankedData(
+      data,
+      getShortSymbol,
+      stablecoinSymbols,
+      symbolToName,
+      coinMaps,
+      marketsData?.data
+    ),
+    [data, getShortSymbol, stablecoinSymbols, symbolToName, coinMaps, marketsData]
+  );
 
   const { ranked, maxAtrp, minAtrp } = rankedData;
   const range = maxAtrp - minAtrp;
@@ -195,12 +98,9 @@ export const VolatilityRankingATRP: React.FC<VolatilityRankingProps> = ({
   }
 
   // --- RENDER ITEM ---
-  const renderItem = ({ item, index }: { item: { symbol: string; atrp_30d: number }; index: number }) => {
+  const renderItemWithTooltip = ({ item, index }: { item: RankedCoinItem; index: number }) => {
     // Bar width is relative to the *maximum* ATRP value in the current list
     const barWidth = (item.atrp_30d / maxAtrp) * 100;
-
-    // Linear interpolation for color between low and high based on the current item's rank
-    const colorRatio = range > 0 ? (item.atrp_30d - minAtrp) / range : 0;
 
     // Simple logic: Use highColor for top 2, lowColor for bottom 2, and tint for the rest.
     let barColor = neutralBarColor;
@@ -218,7 +118,12 @@ export const VolatilityRankingATRP: React.FC<VolatilityRankingProps> = ({
         {/* Rank & Symbol */}
         <View style={styles.rankAndSymbol}>
           <Text style={[styles.rank, { color: secondaryText }]}>{index + 1}.</Text>
-          <Text style={[styles.symbol, { color: primaryText }]}>{item.symbol}</Text>
+          <CoinSymbolWithTooltip 
+            symbol={item.symbol}
+            coinName={item.coinName}
+            textColor={primaryText}
+            textStyle={styles.symbol}
+          />
         </View>
 
         {/* Bar Chart Representation */}
@@ -244,12 +149,36 @@ export const VolatilityRankingATRP: React.FC<VolatilityRankingProps> = ({
       <Text style={[styles.title, { color: titleDefaultColor }]}>
         30-Day Volatility Ranking (ATRP %)
       </Text>
+      {description && (
+        <Text style={[styles.description, { color: secondaryText }]}>
+          {description}
+        </Text>
+      )}
       <Text style={[styles.subtitle, { color: secondaryText }]}>
         Excluding Stablecoins (Highest Volatility First)
       </Text>
+      
+      {/* Legend (only in normal mode) */}
+      {mode === 'normal' && (
+        <View style={[styles.legendContainer, { backgroundColor: neutralBarColor }]}>
+          <View style={styles.legendItem}>
+            <View style={[styles.legendColorBox, { backgroundColor: highColor }]} />
+            <Text style={[styles.legendText, { color: secondaryText }]}>High Volatility (Top 2)</Text>
+          </View>
+          <View style={styles.legendItem}>
+            <View style={[styles.legendColorBox, { backgroundColor: tintColor }]} />
+            <Text style={[styles.legendText, { color: secondaryText }]}>Medium Volatility</Text>
+          </View>
+          <View style={styles.legendItem}>
+            <View style={[styles.legendColorBox, { backgroundColor: lowColor }]} />
+            <Text style={[styles.legendText, { color: secondaryText }]}>Low Volatility (Bottom 2)</Text>
+          </View>
+        </View>
+      )}
+
       <FlatList
         data={ranked}
-        renderItem={renderItem}
+        renderItem={renderItemWithTooltip}
         keyExtractor={item => item.symbol}
         style={styles.list}
         ItemSeparatorComponent={() => <View style={[styles.separator, { backgroundColor: borderColor }]} />}
@@ -272,9 +201,36 @@ const styles = StyleSheet.create({
     ...typographySizes.subtitle,
     marginBottom: Spacing.xs,
   },
+  description: {
+    ...typographySizes.small,
+    marginBottom: Spacing.xs,
+    fontStyle: 'italic',
+  },
   subtitle: {
     ...typographySizes.small,
     marginBottom: Spacing.md,
+  },
+  legendContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: Spacing.md,
+    marginBottom: Spacing.md,
+    paddingVertical: Spacing.sm,
+    paddingHorizontal: Spacing.xs,
+    borderRadius: Spacing.xs,
+  },
+  legendItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.xs,
+  },
+  legendColorBox: {
+    width: 12,
+    height: 12,
+    borderRadius: 2,
+  },
+  legendText: {
+    ...typographySizes.xsmall,
   },
   list: {
     flexGrow: 0,
@@ -319,5 +275,5 @@ const styles = StyleSheet.create({
   separator: {
     height: 1,
     opacity: Opacity.gridLine,
-  }
+  },
 });

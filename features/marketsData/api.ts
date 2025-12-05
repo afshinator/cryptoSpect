@@ -1,10 +1,10 @@
-// utils/markets.ts
+// features/marketsData/api.ts
 // Functions for fetching cryptocurrency market data from Crypto Proxy API with automatic fallback to CoinGecko
 
 import { CoinGeckoMarketData } from '@/constants/coinGecko';
 import { getEffectivePreferences, isGlobalApiBlocked, shouldBlockEndpoint } from '@/stores/apiBlockingStore';
-import { callFeatureEndpoint } from './apiWrappers';
-import { ERR, log, LOG, TMI } from './log';
+import { callFeatureEndpoint } from '@/utils/apiWrappers';
+import { ERR, log, LOG, TMI } from '@/utils/log';
 
 /**
  * Options for fetching markets data
@@ -38,7 +38,44 @@ export interface MarketsResponse {
   fetchedAt: number;
 }
 
+/**
+ * Maps for converting between coin IDs and symbols
+ */
+export interface CoinMaps {
+  /** Map from coin ID (e.g., "bitcoin") to symbol (e.g., "BTC") */
+  idToSymbol: Record<string, string>;
+  /** Map from symbol (e.g., "btc") to coin ID (e.g., "bitcoin") */
+  symbolToId: Record<string, string>;
+}
+
 const FEATURE_ID = 'markets' as const;
+
+/**
+ * Builds coin ID and symbol mapping from markets data
+ * @param marketsData Array of market data from the API
+ * @returns Maps for idToSymbol and symbolToId
+ */
+export function buildCoinMaps(marketsData: CoinGeckoMarketData[]): CoinMaps {
+  const idToSymbol: Record<string, string> = {};
+  const symbolToId: Record<string, string> = {};
+
+  marketsData.forEach((coin) => {
+    if (coin.id && coin.symbol) {
+      // Store both lowercase and uppercase symbol mappings
+      const symbolLower = coin.symbol.toLowerCase();
+      const symbolUpper = coin.symbol.toUpperCase();
+      
+      // ID to symbol (uppercase for display)
+      idToSymbol[coin.id] = symbolUpper;
+      
+      // Symbol to ID (handle both cases)
+      symbolToId[symbolLower] = coin.id;
+      symbolToId[symbolUpper] = coin.id;
+    }
+  });
+
+  return { idToSymbol, symbolToId };
+}
 
 /**
  * Fetches markets data from the backend API (primary source)
@@ -77,7 +114,7 @@ async function fetchFromBackend(
     queryParams.category = category;
   }
 
-  log(`💰 Fetching markets from backend with per_page=${per_page}`, TMI);
+  log(`📈 Fetching markets from backend with per_page=${per_page}`, TMI);
   const result = await callFeatureEndpoint<CoinGeckoMarketData[]>(
     FEATURE_ID,
     'CRYPTO_PROXY_MARKETS',
@@ -88,7 +125,7 @@ async function fetchFromBackend(
   );
 
   if (result.success && result.data) {
-    log('💰 Markets data fetched successfully from backend (primary)', LOG);
+    log('📈 Markets data fetched successfully from backend (primary)', LOG);
     // Add client-side timestamp when data is received
     return {
       data: result.data,
@@ -96,9 +133,9 @@ async function fetchFromBackend(
     };
   } else {
     if (result.blocked) {
-      log(`💰 Primary data source (backend) ⛔blocked⛔ for markets`, TMI);
+      log(`📈 Primary data source (backend) ⛔blocked⛔ for markets`, TMI);
     } else {
-      log(`💰 Failed to fetch markets data from backend: ${result.error}`, ERR);
+      log(`📈 Failed to fetch markets data from backend: ${result.error}`, ERR);
     }
     return null;
   }
@@ -114,12 +151,12 @@ async function fetchFromCoinGecko(
 ): Promise<MarketsResponse | null> {
   // Check if CoinGecko is blocked globally or for this feature
   if (isGlobalApiBlocked('coingecko')) {
-    log('💰 CoinGecko API is blocked globally, cannot use secondary source', ERR);
+    log('📈 CoinGecko API is blocked globally, cannot use secondary source', ERR);
     return null;
   }
   
   if (shouldBlockEndpoint(FEATURE_ID, 'COINGECKO_COINS_MARKETS', 'secondary')) {
-    log('💰 CoinGecko secondary source is blocked for this feature', ERR);
+    log('📈 CoinGecko secondary source is blocked for this feature', ERR);
     return null;
   }
 
@@ -153,7 +190,7 @@ async function fetchFromCoinGecko(
   }
 
   try {
-    log(`💰 Fetching markets data from CoinGecko (secondary source)🏵️ with per_page=${per_page}...`, TMI);
+    log(`📈 Fetching markets data from CoinGecko (secondary source)🏵️ with per_page=${per_page}...`, TMI);
     
     const result = await callFeatureEndpoint<CoinGeckoMarketData[]>(
       FEATURE_ID,
@@ -165,7 +202,7 @@ async function fetchFromCoinGecko(
     );
 
     if (result.success && result.data) {
-      log('💰 Markets data fetched successfully from CoinGecko', TMI);
+      log('📈 Markets data fetched successfully from CoinGecko', TMI);
       // Add client-side timestamp when data is received
       return {
         data: result.data,
@@ -173,15 +210,15 @@ async function fetchFromCoinGecko(
       };
     } else {
       if (result.blocked) {
-        log(`💰 CoinGecko secondary source ⛔blocked⛔ for markets`, TMI);
+        log(`📈 CoinGecko secondary source ⛔blocked⛔ for markets`, TMI);
       } else {
-        log(`💰 Failed to fetch markets data from CoinGecko: ${result.error}`, ERR);
+        log(`📈 Failed to fetch markets data from CoinGecko: ${result.error}`, ERR);
       }
       return null;
     }
   } catch (error: any) {
     const errorMessage = error?.message || 'Unknown error fetching markets from CoinGecko';
-    log(`💰 Failed to fetch markets from CoinGecko: ${errorMessage}`, ERR);
+    log(`📈 Failed to fetch markets from CoinGecko: ${errorMessage}`, ERR);
     return null;
   }
 }
@@ -209,7 +246,7 @@ export async function fetchMarkets(
 
   // Preferred source failed - try fallback if enabled
   if (enableFallback) {
-    log(`💰 Preferred source (${preferredDataSource}) unavailable, falling back to ${preferredDataSource === 'primary' ? 'secondary' : 'primary'}...`, TMI);
+    log(`📈 Preferred source (${preferredDataSource}) unavailable, falling back to ${preferredDataSource === 'primary' ? 'secondary' : 'primary'}...`, TMI);
     const fallbackResult = preferredDataSource === 'primary' 
       ? await fetchFromCoinGecko(options) 
       : await fetchFromBackend(options);
@@ -220,7 +257,7 @@ export async function fetchMarkets(
   }
 
   // Both sources failed or fallback disabled
-  log(`💰 Both ${preferredDataSource === 'primary' ? 'primary and secondary' : 'secondary and primary'} failed to provide markets data${!enableFallback ? ' (fallback disabled)' : ''}`, ERR);
+  log(`📈 Both ${preferredDataSource === 'primary' ? 'primary and secondary' : 'secondary and primary'} failed to provide markets data${!enableFallback ? ' (fallback disabled)' : ''}`, ERR);
   return null;
 }
 

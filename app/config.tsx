@@ -145,18 +145,12 @@ export default function ConfigScreen() {
             };
             const effectivePrefs = getEffectivePreferences(feature.id);
 
-            // Map feature IDs to emojis
-            const featureEmojis: Record<string, string> = {
-              currentVolatility: '⚡',
-              currentDominance: '💪',
-              vwatr: '📊',
-              markets: '💰',
-            };
+            // Use emoji from feature config (configurable from features.ts)
 
             return (
               <BorderedSection 
                 key={feature.id}
-                backgroundEmoji={featureEmojis[feature.id]}
+                backgroundEmoji={feature.emoji}
                 emojiOpacity={0.15}
                 emojiPlacement="upperRight"
               >

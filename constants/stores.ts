@@ -1,9 +1,9 @@
 // constants/stores.ts
-
+// These a
 import { CurrentVolatilityResponse } from '@/features/currentVolatility/api';
 import { CurrentDominanceResponse } from '@/features/dominance/current/api';
+import { CoinMaps, MarketsResponse } from '@/features/marketsData/api';
 import { VwatrResponse } from '@/features/vwatr/api';
-import { MarketsResponse } from '@/utils/markets';
 import { DEFAULT_CURRENCY } from './currency';
 
 // AsyncStorage keys
@@ -24,5 +24,6 @@ export const DEFAULT_LATEST = {
   currentDominanceData: null as CurrentDominanceResponse | null,
   vwatrData: null as VwatrResponse | null,
   marketsData: null as MarketsResponse | null,
+  coinMaps: null as CoinMaps | null,
 } as const;
 

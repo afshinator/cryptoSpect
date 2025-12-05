@@ -27,6 +27,8 @@ export interface FeatureConfig {
   endpoints: string[];
   /** Whether this feature supports secondary data sources */
   supportsSecondarySource: boolean;
+  /** Emoji icon for the feature (used in config screen) */
+  emoji: string;
 }
 
 /**
@@ -39,6 +41,7 @@ export const FEATURES: Record<FeatureId, FeatureConfig> = {
     description: 'Fetches and displays current cryptocurrency market volatility data',
     endpoints: ['CRYPTO_PROXY_CURRENT_VOLATILITY'],
     supportsSecondarySource: false, // Will be true when secondary source is added
+    emoji: '⚡',
   },
   currentDominance: {
     id: 'currentDominance',
@@ -46,6 +49,7 @@ export const FEATURES: Record<FeatureId, FeatureConfig> = {
     description: 'Fetches and displays current cryptocurrency market dominance data (BTC, ETH, stablecoins, others)',
     endpoints: ['CRYPTO_PROXY_CURRENT_DOMINANCE', 'COINGECKO_GLOBAL', 'COINGECKO_COINS_MARKETS'],
     supportsSecondarySource: true,
+    emoji: '💪',
   },
   vwatr: {
     id: 'vwatr',
@@ -53,6 +57,7 @@ export const FEATURES: Record<FeatureId, FeatureConfig> = {
     description: 'Fetches and displays Volume-Weighted Average True Range (VWATR) volatility data for cryptocurrency assets',
     endpoints: ['CRYPTO_PROXY_VWATR'],
     supportsSecondarySource: false,
+    emoji: '📊',
   },
   markets: {
     id: 'markets',
@@ -60,6 +65,7 @@ export const FEATURES: Record<FeatureId, FeatureConfig> = {
     description: 'Fetches and displays cryptocurrency market data including prices, market caps, and volume',
     endpoints: ['CRYPTO_PROXY_MARKETS', 'COINGECKO_COINS_MARKETS'],
     supportsSecondarySource: true,
+    emoji: '📈',
   },
 };
 
