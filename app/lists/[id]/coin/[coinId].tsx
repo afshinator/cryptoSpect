@@ -1,26 +1,25 @@
 // app/lists/[id]/coin/[coinId].tsx
 // List-specific coin detail screen
 
-import { useLocalSearchParams, useRouter } from 'expo-router';
-import React, { useState, useMemo } from 'react';
-import { ActivityIndicator, StyleSheet, Pressable, TextInput, ScrollView } from 'react-native';
+import { ModalDialog } from '@/components/ModalDialog';
+import { ScreenContainer } from '@/components/ScreenContainer';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
-import { ScreenContainer } from '@/components/ScreenContainer';
-import { Spacing, BorderRadius } from '@/constants/theme';
-import { CoinGeckoMarketData } from '@/constants/coinGecko';
-import { useThemeColor } from '@/hooks/use-theme-color';
+import { BorderRadius, Spacing } from '@/constants/theme';
 import { useCoinListsStore } from '@/features/lists/store';
 import { TOP20_LIST_ID } from '@/features/lists/top20List';
+import { useThemeColor } from '@/hooks/use-theme-color';
 import { useLatestStore } from '@/stores/latestStore';
-import { ModalDialog } from '@/components/ModalDialog';
-import { Image } from 'expo-image';
 import { usePrefsStore } from '@/stores/prefsStore';
+import { Image } from 'expo-image';
+import { useLocalSearchParams, useRouter } from 'expo-router';
+import React, { useMemo, useState } from 'react';
+import { ActivityIndicator, Pressable, ScrollView, StyleSheet, TextInput } from 'react-native';
 
 export default function ListCoinDetailScreen() {
   const { id: listId, coinId } = useLocalSearchParams<{ id: string; coinId: string }>();
   const router = useRouter();
-  const { getList, updateCoinNotes, top20List } = useCoinListsStore();
+  const { updateCoinNotes, top20List, lists } = useCoinListsStore();
   const { marketsData } = useLatestStore();
   const { currency } = usePrefsStore();
   const [isEditingNotes, setIsEditingNotes] = useState(false);
@@ -37,9 +36,9 @@ export default function ListCoinDetailScreen() {
   const highlightedText = useThemeColor({}, 'highlightedText');
   const inputBackground = useThemeColor({}, 'inputBackground');
   
-  // Get the list (handle top 20 list)
+  // Get the list (handle top 20 list) - subscribe to store changes
   const isTop20List = listId === TOP20_LIST_ID;
-  const list = isTop20List ? top20List : (listId ? getList(listId) : undefined);
+  const list = isTop20List ? top20List : (listId ? lists.find(l => l.id === listId) : undefined);
   
   // Find the coin in this specific list
   const coin = useMemo(() => {
@@ -206,7 +205,7 @@ export default function ListCoinDetailScreen() {
           {/* Coin Notes Section - List Specific */}
           <ThemedView style={[styles.section, { backgroundColor: cardColor, borderColor }]}>
             <ThemedText type="subtitle" style={styles.sectionTitle}>
-              Notes for {list.name}
+              Notes 
             </ThemedText>
             
             {!isEditingNotes ? (

@@ -15,8 +15,6 @@ import { Image } from 'expo-image';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import {
-  Alert,
-  Platform,
   Pressable,
   RefreshControl,
   ScrollView,
@@ -27,14 +25,17 @@ import {
 export default function ListDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
-  const { getList, updateList, removeCoinFromList, top20List } = useCoinListsStore();
+  const { updateList, removeCoinFromList, top20List, lists } = useCoinListsStore();
   
   // Handle special "current-top-20" virtual list
   const isTop20List = id === TOP20_LIST_ID;
   
-  const list = isTop20List ? top20List : (id ? getList(id) : undefined);
+  // Subscribe to store changes by reading from lists array
+  const list = isTop20List ? top20List : (id ? lists.find(l => l.id === id) : undefined);
 
+  const [isEditingName, setIsEditingName] = useState(false);
   const [isEditingNotes, setIsEditingNotes] = useState(false);
+  const [editedName, setEditedName] = useState('');
   const [editedNotes, setEditedNotes] = useState('');
   const [coinToRemove, setCoinToRemove] = useState<string | null>(null);
   const [isSearchModalVisible, setIsSearchModalVisible] = useState(false);
@@ -74,13 +75,35 @@ export default function ListDetailScreen() {
     );
   }
 
+  const handleUpdateName = async () => {
+    if (!id) return;
+    const result = await updateList(id, { name: editedName.trim() });
+    if ('error' in result) {
+      setAlertModal({
+        visible: true,
+        title: 'Error',
+        message: result.error,
+      });
+    } else {
+      setIsEditingName(false);
+      setEditedName('');
+    }
+  };
+
+  const handleStartEditName = () => {
+    setEditedName(list.name);
+    setIsEditingName(true);
+  };
+
   const handleUpdateNotes = async () => {
+    if (!id) return;
     await updateList(id, { notes: editedNotes });
     setIsEditingNotes(false);
     setEditedNotes('');
   };
 
   const handleStartEditNotes = () => {
+    if (!list) return;
     setEditedNotes(list.notes || '');
     setIsEditingNotes(true);
   };
@@ -128,22 +151,73 @@ export default function ListDetailScreen() {
         >
           {/* Header */}
           <ThemedView style={styles.header}>
+            {/* List Name */}
+            {!isEditingName ? (
+              <Pressable onPress={isTop20List ? undefined : handleStartEditName} disabled={isTop20List}>
+                <ThemedText type="title" style={styles.listName}>
+                  {list.name}
+                </ThemedText>
+              </Pressable>
+            ) : (
+              <ThemedView style={styles.editContainer}>
+                <TextInput
+                  style={[styles.editInput, { color: textColor, borderColor }]}
+                  value={editedName}
+                  onChangeText={setEditedName}
+                  autoFocus
+                  onSubmitEditing={handleUpdateName}
+                  placeholder="List name"
+                  placeholderTextColor={textSubtle}
+                />
+                <ThemedView style={styles.editButtons}>
+                  <Pressable
+                    onPress={() => {
+                      setIsEditingName(false);
+                      setEditedName('');
+                    }}
+                    style={[styles.editButton, { borderColor }]}
+                  >
+                    <ThemedText type="small">Cancel</ThemedText>
+                  </Pressable>
+                  <Pressable
+                    onPress={handleUpdateName}
+                    style={[styles.editButton, { backgroundColor: tintColor }]}
+                  >
+                    <ThemedText type="small" style={{ color: highlightedText }}>
+                      Save
+                    </ThemedText>
+                  </Pressable>
+                </ThemedView>
+              </ThemedView>
+            )}
+
             <ThemedText type="small" colorVariant="textSubtle">
               {list.coins.length} {list.coins.length === 1 ? 'coin' : 'coins'}
             </ThemedText>
 
+            {/* List Notes */}
             {!isEditingNotes ? (
-              <Pressable onPress={isTop20List ? undefined : handleStartEditNotes} disabled={isTop20List}>
-                {list.notes ? (
+              isTop20List ? (
+                list.notes && (
                   <ThemedText style={styles.listNotes}>{list.notes}</ThemedText>
-                ) : (
-                  !isTop20List && (
+                )
+              ) : (
+                <Pressable 
+                  onPress={handleStartEditNotes}
+                  style={({ pressed }) => [
+                    styles.notesPressable,
+                    pressed && { opacity: 0.6 }
+                  ]}
+                >
+                  {list.notes ? (
+                    <ThemedText style={styles.listNotes}>{list.notes}</ThemedText>
+                  ) : (
                     <ThemedText style={styles.listNotesPlaceholder} colorVariant="textSubtle">
                       Tap to add notes...
                     </ThemedText>
-                  )
-                )}
-              </Pressable>
+                  )}
+                </Pressable>
+              )
             ) : (
               <ThemedView style={styles.editContainer}>
                 <TextInput
@@ -328,6 +402,13 @@ const styles = StyleSheet.create({
   listName: {
     marginBottom: Spacing.xs,
   },
+  notesPressable: {
+    marginTop: Spacing.xs,
+    paddingVertical: Spacing.sm,
+    paddingHorizontal: Spacing.xs,
+    minHeight: 44,
+    borderRadius: BorderRadius.sm,
+  },
   listNotes: {
     marginTop: Spacing.xs,
   },
@@ -382,7 +463,7 @@ const styles = StyleSheet.create({
     borderRadius: BorderRadius.md,
     borderWidth: 1,
     padding: Spacing.md,
-    marginBottom: Spacing.sm,
+    // marginBottom: Spacing.sm,
   },
   coinContent: {
     flexDirection: 'row',
