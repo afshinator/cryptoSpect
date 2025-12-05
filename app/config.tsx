@@ -149,6 +149,7 @@ export default function ConfigScreen() {
             const featureEmojis: Record<string, string> = {
               currentVolatility: '⚡',
               currentDominance: '💪',
+              vwatr: '📊',
             };
 
             return (

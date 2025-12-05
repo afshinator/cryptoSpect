@@ -87,6 +87,16 @@ export const ENDPOINTS: Record<string, EndpointConfig> = {
       errorCount: 0,
     },
   },
+  CRYPTO_PROXY_VWATR: {
+    id: 'crypto-proxy-vwatr',
+    url: `${CRYPTO_PROXY_BASE_URL}/api/volatility`,
+    name: 'Crypto Proxy VWATR',
+    enabled: true,
+    stats: {
+      callCount: 0,
+      errorCount: 0,
+    },
+  },
   CRYPTO_PROXY_CURRENT_DOMINANCE: {
     id: 'crypto-proxy-current-dominance',
     url: `${CRYPTO_PROXY_BASE_URL}/api/dominance`,

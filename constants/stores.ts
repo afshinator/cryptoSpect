@@ -2,6 +2,7 @@
 
 import { CurrentVolatilityResponse } from '@/features/currentVolatility/api';
 import { CurrentDominanceResponse } from '@/features/dominance/current/api';
+import { VwatrResponse } from '@/features/vwatr/api';
 import { DEFAULT_CURRENCY } from './currency';
 
 // AsyncStorage keys
@@ -20,5 +21,6 @@ export const DEFAULT_PREFS = {
 export const DEFAULT_LATEST = {
   currentVolatilityData: null as CurrentVolatilityResponse | null,
   currentDominanceData: null as CurrentDominanceResponse | null,
+  vwatrData: null as VwatrResponse | null,
 } as const;
 

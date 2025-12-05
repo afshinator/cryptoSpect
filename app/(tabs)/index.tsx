@@ -7,8 +7,10 @@ import { CurrentVolatilityWidget } from '@/components/CurrentVolatilityWidget';
 import ParallaxScrollView from '@/components/parallax-scroll-view';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
+import { VolatilityRankingATRP } from '@/components/volatility-ranking-atrp-chart/VolatilityRankingATRP';
 import { fetchCurrentVolatility } from '@/features/currentVolatility/api';
 import { fetchCurrentDominance } from '@/features/dominance/current/api';
+import { fetchVwatr } from '@/features/vwatr/api';
 import { useLatestStore } from '@/stores/latestStore';
 import { usePrefsStore } from '@/stores/prefsStore';
 import { log, LOG, TMI } from '@/utils/log';
@@ -20,12 +22,15 @@ export default function HomeScreen() {
     setCurrentVolatilityData,
     currentDominanceData,
     setCurrentDominanceData,
+    vwatrData,
+    setVwatrData,
   } = useLatestStore();
   const { compactMode } = usePrefsStore();
 
   // Use refs to track if fetches are in progress to prevent duplicate calls
   const volatilityFetchInProgress = useRef(false);
   const dominanceFetchInProgress = useRef(false);
+  const vwatrFetchInProgress = useRef(false);
 
   // Convert CurrentVolatilityResponse to VolatilityData format for widget
   const volatilityWidgetData = currentVolatilityData ? {
@@ -67,7 +72,21 @@ export default function HomeScreen() {
         dominanceFetchInProgress.current = false;
       });
     }
-  }, [currentVolatilityData, currentDominanceData]); // Removed setters - they're stable references
+
+    // Only fetch VWATR data if it's null and not already fetching
+    if (vwatrData === null && !vwatrFetchInProgress.current) {
+      vwatrFetchInProgress.current = true;
+      fetchVwatr().then((data) => {
+        vwatrFetchInProgress.current = false;
+        if (data) {
+          setVwatrData(data);
+          log(`📊 VWATR data stored: bag=${data.bag}, periods=[${data.periods.join(',')}], coins=${data.data.length}`, LOG);
+        }
+      }).catch(() => {
+        vwatrFetchInProgress.current = false;
+      });
+    }
+  }, [currentVolatilityData, currentDominanceData, vwatrData]); // Removed setters - they're stable references
   return (
     <ParallaxScrollView
       headerBackgroundColor={{ light: '#2789aa', dark: '#151d2c' }}
@@ -101,59 +120,19 @@ export default function HomeScreen() {
         />
       )}
 
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 1: Try it</ThemedText>
-        <ThemedText>
-          Edit <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> to see changes.
-          Press{' '}
-          <ThemedText type="defaultSemiBold">
-            {Platform.select({
-              ios: 'cmd + d',
-              android: 'cmd + m',
-              web: 'F12',
-            })}
-          </ThemedText>{' '}
-          to open developer tools.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <Link href="/modal">
-          <Link.Trigger>
-            <ThemedText type="subtitle">Step 2: Explore</ThemedText>
-          </Link.Trigger>
-          {/* Link.Preview removed to fix aria-hidden accessibility warning on web */}
-          <Link.Menu>
-            <Link.MenuAction title="Action" icon="cube" onPress={() => alert('Action pressed')} />
-            <Link.MenuAction
-              title="Share"
-              icon="square.and.arrow.up"
-              onPress={() => alert('Share pressed')}
-            />
-            <Link.Menu title="More" icon="ellipsis">
-              <Link.MenuAction
-                title="Delete"
-                icon="trash"
-                destructive
-                onPress={() => alert('Delete pressed')}
-              />
-            </Link.Menu>
-          </Link.Menu>
-        </Link>
+      {vwatrData && (
+        <VolatilityRankingATRP 
+          data={{
+            type: vwatrData.type,
+            bag: vwatrData.bag,
+            periods: vwatrData.periods,
+            maxPeriod: vwatrData.maxPeriod,
+            timestamp: vwatrData.timestamp,
+            data: vwatrData.data,
+          }}
+        />
+      )}
 
-        <ThemedText>
-          {`Tap the Explore tab to learn more about what's included in this starter app.`}
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 3: Get a fresh start</ThemedText>
-        <ThemedText>
-          {`When you're ready, run `}
-          <ThemedText type="defaultSemiBold">npm run reset-project</ThemedText> to get a fresh{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> directory. This will move the current{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> to{' '}
-          <ThemedText type="defaultSemiBold">app-example</ThemedText>.
-        </ThemedText>
-      </ThemedView>
       <ThemedView style={styles.stepContainer}>
         <Link href="/tests">
           <Link.Trigger>

@@ -1,4 +1,4 @@
-/**
+/* constants/stablecoins.ts
  * Interface for a stablecoin asset.
  * Note: Market Cap and other data points are omitted as they are highly volatile and should be fetched
  * via a real-time API (e.g., CoinGecko, CoinMarketCap, Messari) for production use.
