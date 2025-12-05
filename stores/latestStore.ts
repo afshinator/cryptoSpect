@@ -44,6 +44,6 @@ const latestStateCreator: StateCreator<LatestState> = (set) => ({
 });
 
 export const useLatestStore = create<LatestState>()(
-  withDevtools(latestStateCreator, 'LatestStore')
+  withDevtools(latestStateCreator, 'LatestStore') as StateCreator<LatestState>
 );
 

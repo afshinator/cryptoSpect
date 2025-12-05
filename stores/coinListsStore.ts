@@ -1,13 +1,14 @@
 // stores/coinListsStore.ts
 // Zustand store for managing coin lists with AsyncStorage persistence
 
+import { COINLISTS_STORAGE_KEY } from '@/features/lists/constants';
+import { CoinList, CoinListItem, CoinListsState } from '@/features/lists/types';
 import { usePrefsStore } from '@/stores/prefsStore';
 import { withDevtools } from '@/stores/storeHelpers';
+import { log, TMI } from '@/utils/log';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { create, StateCreator } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
-import { COINLISTS_STORAGE_KEY } from '@/features/lists/constants';
-import { CoinList, CoinListItem, CoinListsState } from '@/features/lists/types';
 
 /**
  * Generate a unique list ID
@@ -241,54 +242,31 @@ const coinListsStateCreator: StateCreator<CoinListsState> = (set, get) => ({
 
 export const useCoinListsStore = create<CoinListsState>()(
   persist(
-    withDevtools(coinListsStateCreator, 'CoinListsStore'),
+    withDevtools(coinListsStateCreator, 'CoinListsStore') as StateCreator<CoinListsState>,
     {
       name: COINLISTS_STORAGE_KEY,
       storage: createJSONStorage(() => AsyncStorage),
       onRehydrateStorage: () => {
-        console.log('🔄 CoinListsStore: Starting rehydration...');
         return (state, error) => {
           if (error) {
             console.error('❌ CoinListsStore: Rehydration error:', error);
-          } else {
-            console.log('✅ CoinListsStore: Rehydrated from storage');
-            console.log('📦 Full state object:', JSON.stringify(state, null, 2));
-            console.log('📋 Lists array:', state?.lists);
-            console.log('📊 Lists count:', state?.lists?.length || 0);
-            console.log('🔝 Top20List exists:', state?.top20List !== null);
-            console.log('💧 Has hydrated flag:', state?._hasHydrated);
           }
           state?.setHasHydrated(true);
         };
       },
       partialize: (state) => {
         const { _hasHydrated, top20List, ...rest } = state;
-        console.log('💾 CoinListsStore: Partializing state for storage');
-        console.log('📦 What will be saved:', JSON.stringify(rest, null, 2));
-        console.log('📋 Lists to save:', rest.lists);
-        console.log('📊 Lists count to save:', rest.lists?.length || 0);
         return rest;
       },
     }
   )
 );
 
-// Log all state changes
+// Log all state changes (TMI level)
 if (__DEV__) {
-  useCoinListsStore.subscribe((state, prevState) => {
-    console.log('🔄 CoinListsStore: State changed');
-    console.log('📦 Current state:', {
-      listsCount: state.lists.length,
-      lists: state.lists.map(l => ({ id: l.id, name: l.name, coinsCount: l.coins.length })),
-      top20ListExists: state.top20List !== null,
-      hasHydrated: state._hasHydrated,
-    });
-    console.log('📦 Previous state:', {
-      listsCount: prevState.lists.length,
-      lists: prevState.lists.map(l => ({ id: l.id, name: l.name, coinsCount: l.coins.length })),
-      top20ListExists: prevState.top20List !== null,
-      hasHydrated: prevState._hasHydrated,
-    });
+  useCoinListsStore.subscribe((state) => {
+    log(`🔄 CoinListsStore: State - lists: ${state.lists.length}, top20List: ${state.top20List !== null}, hydrated: ${state._hasHydrated}`, TMI);
+    log(`📦 CoinListsStore: Lists: ${JSON.stringify(state.lists.map(l => ({ id: l.id, name: l.name, coinsCount: l.coins.length })))}`, TMI);
   });
 }
 

@@ -7,9 +7,11 @@ The CoinList feature allows users to create, manage, and organize custom lists o
 ## Data Structure & Storage
 
 ### Storage Mechanism
-- Data is persisted using AsyncStorage (local device storage)
-- All lists are stored as a single JSON array
-- Storage operations are asynchronous and handled through utility functions
+- Data is persisted using Zustand's `persist` middleware with AsyncStorage
+- Store location: `stores/coinListsStore.ts`
+- Persistence is automatic - Zustand handles saving on every state change
+- Storage key: `'coinlists'` (defined in `features/lists/constants.ts`)
+- Only `lists` array is persisted (excludes `_hasHydrated` and `top20List`)
 
 ### Data Schema
 
@@ -28,6 +30,7 @@ Individual coin entry within a list:
 - `coinId`: Coin identifier from market data API (string, e.g., 'bitcoin')
 - `symbol`: Coin symbol (string, e.g., 'BTC')
 - `name`: Coin name (string, e.g., 'Bitcoin')
+- `image`: Coin image URL from market data API (string, optional)
 - `notes`: User-created notes specific to this coin in this list (string, optional)
 - `apiData`: Optional full market data object (can be refreshed, typically omitted on creation for efficiency)
 - `addedAt`: Timestamp when coin was added to list (number, milliseconds since epoch)
@@ -38,6 +41,14 @@ Individual coin entry within a list:
 - Duplicate coins cannot be added to the same list (checked by coinId)
 - List names are trimmed of whitespace
 - Coin notes are trimmed when saved
+
+### Special Lists
+- **"Current top 20"**: A virtual, read-only list automatically generated from `marketsData`
+  - ID: `'current-top-20'` (defined in `features/lists/top20List.ts`)
+  - Built on homepage when market data is fetched
+  - Stored in Zustand state but NOT persisted to AsyncStorage
+  - Always shows top 20 coins by market cap from latest market data
+  - Cannot be edited, deleted, or have coins added/removed
 
 ## Core Functionality
 
@@ -61,8 +72,10 @@ Individual coin entry within a list:
 
 **View Lists**
 - Lists are displayed in a scrollable list view
-- Each list shows: name, coin count, preview of coin icons
+- Each list shows: name, coin count, notes excerpt (if available), preview of coin icons
 - Lists can be tapped to navigate to detail view
+- "Current top 20" list is always shown first (if market data is available)
+- Shows loading spinner next to "Current top 20" if market data not yet loaded
 
 ### Coin Management
 
@@ -80,33 +93,41 @@ Individual coin entry within a list:
 - List's `updatedAt` timestamp is updated
 
 **Edit Coin Notes**
-- Inline editing of notes for individual coins
+- Notes are edited on the coin detail page (`app/lists/[id]/coin/[coinId].tsx`)
 - Notes are saved per-coin, per-list (same coin in different lists can have different notes)
 - Editing state is managed with save/cancel actions
+- Notes can be deleted (clears the notes field)
 
 **View Coin Details**
-- Tapping a coin navigates to coin detail screen
-- Coin detail shows full market information
+- Tapping a coin navigates to list-specific coin detail screen (`app/lists/[id]/coin/[coinId].tsx`)
+- Coin detail shows full market information from `marketsData`
+- Displays coin notes for that specific list
+- Allows editing/deleting notes for that coin in that list
 
 ### List Detail View
 
-**Display Options**
-- **Compact View**: Toggle between compact and expanded display modes
-- Compact view shows less information per coin
-- View preference can be changed per-list (initializes from global preference but can be overridden)
+**Navigation**
+- Route: `app/lists/[id].tsx`
+- Header title: "List Details"
+- Back button label: "All Lists"
+
+**List Metadata Editing**
+- List name can be edited inline (with duplicate name checking)
+- List notes can be edited inline (multiline text input)
+- Changes save automatically via Zustand store
+- "Current top 20" list is read-only (name and notes cannot be edited)
 
 **Coin Display**
 - Shows coin name, symbol, current price, 24h price change
-- Displays coin image if available
-- Shows user notes (editable inline)
+- Displays coin image if available (using `expo-image`)
 - Color-coded price change indicators
-- Stablecoin badge for stablecoins
-- Remove button for each coin
+- Delete button (trash icon) on the far right of each coin item
+- Tapping coin navigates to coin detail page
+- "Current top 20" list coins cannot be removed
 
-**List Metadata Editing**
-- List name can be edited inline
-- List notes can be edited inline
-- Changes save automatically
+**Add Coin**
+- "+ Add Coin" button opens search modal
+- Hidden for "Current top 20" list
 
 ## Options & Features
 
@@ -292,9 +313,10 @@ Individual coin entry within a list:
 - This ensures case-insensitive removal while preserving original data
 
 **Storage Error Handling**
-- `getCoinLists()` returns empty array `[]` on error (graceful degradation)
-- `saveCoinLists()` throws errors (fail-fast pattern for mutations)
-- This allows the app to continue functioning even if storage read fails, but mutations must succeed
+- Zustand persist middleware handles storage errors automatically
+- Rehydration errors are logged to console but don't crash the app
+- If rehydration fails, store starts with empty `lists` array
+- Storage errors during saves are handled by Zustand (retries, etc.)
 
 ### State Management
 
@@ -351,10 +373,11 @@ Individual coin entry within a list:
 - The timeout prevents race conditions with modal close animation
 
 **Confirmation Modals**
-- Custom confirmation modal is used instead of native `Alert.alert`
-- Provides consistent styling across platforms
+- Uses unified `ModalDialog` component (`components/ModalDialog.tsx`)
+- Works consistently across web and mobile platforms
+- Supports both alert mode (single button) and confirmation mode (two buttons)
 - Modal is rendered at top level of component tree (not nested)
-- State managed separately: `isConfirmingRemoval` and `coinToRemoveId`
+- State managed separately: `coinToRemove` for coin removal, `listToDelete` for list deletion
 
 ### Duplicate Prevention
 
@@ -447,4 +470,26 @@ Individual coin entry within a list:
 - **Web**: No padding adjustment in compact mode
 - **Mobile**: Reduces horizontal padding in compact mode (`paddingHorizontal: Spacing.sm`)
 - Applied via `Platform.select()` in stylesheet
+
+## Testing
+
+### Store Tests
+- Test file: `__tests__/coinListsStore.test.ts`
+- Tests cover all store actions: create, update, delete lists, add/remove coins, update notes
+- Tests validate data constraints: uniqueness, trimming, duplicate prevention
+- Tests verify state management: timestamps, ID generation, top20List handling
+- Uses Jest with mocked AsyncStorage and prefsStore
+
+### Test Coverage
+- ✅ List creation with validation
+- ✅ List updates (name, notes, image)
+- ✅ List deletion
+- ✅ Adding coins to lists
+- ✅ Removing coins from lists
+- ✅ Updating coin notes
+- ✅ List retrieval (getList, getAllLists)
+- ✅ Top 20 list management
+- ✅ Duplicate prevention (list names, coins)
+- ✅ Case-insensitive operations
+- ✅ String trimming and normalization
 

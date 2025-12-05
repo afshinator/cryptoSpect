@@ -3,7 +3,7 @@
 import { SupportedCurrency } from '@/constants/currency';
 import { DEFAULT_PREFS, PREFS_STORAGE_KEY } from '@/constants/stores';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { create } from 'zustand';
+import { create, StateCreator } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 import { withDevtools } from './storeHelpers';
 
@@ -46,7 +46,7 @@ const prefsStateCreator: StateCreator<PrefsState> = (set) => ({
 
 export const usePrefsStore = create<PrefsState>()(
   persist(
-    withDevtools(prefsStateCreator, 'PrefsStore'),
+    withDevtools(prefsStateCreator, 'PrefsStore') as StateCreator<PrefsState>,
     {
       name: PREFS_STORAGE_KEY,
       storage: createJSONStorage(() => AsyncStorage),

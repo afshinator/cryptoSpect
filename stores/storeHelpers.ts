@@ -1,9 +1,9 @@
 // stores/storeHelpers.ts
 // Helper utilities for Zustand stores
 
-import { devtools } from 'zustand/middleware';
 import { Platform } from 'react-native';
 import { StateCreator } from 'zustand';
+import { devtools } from 'zustand/middleware';
 
 /**
  * Wraps a state creator with devtools middleware if in development and on web
@@ -16,7 +16,7 @@ import { StateCreator } from 'zustand';
 export function withDevtools<T>(
   stateCreator: StateCreator<T>,
   storeName: string
-): StateCreator<T> {
+): StateCreator<T, [], [['zustand/devtools', never]]> | StateCreator<T> {
   if (__DEV__ && Platform.OS === 'web') {
     return devtools(stateCreator, { name: storeName });
   }
