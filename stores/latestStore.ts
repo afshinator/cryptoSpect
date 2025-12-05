@@ -1,11 +1,21 @@
 // stores/latestStore.ts
 
+/**
+ * NOTE: SSR-Safe Storage
+ * 
+ * This store uses createSSRSafeStorage() instead of AsyncStorage directly to handle
+ * server-side rendering (SSR) introduced in Expo Router 6.0.17+. During SSR, window
+ * is not available, so we use a wrapper that safely handles this case.
+ * 
+ * See: utils/storage.ts for implementation details.
+ */
+
 import { DEFAULT_LATEST, LATEST_STORAGE_KEY } from '@/constants/stores';
 import { CurrentVolatilityResponse } from '@/features/currentVolatility/api';
 import { CurrentDominanceResponse } from '@/features/dominance/current/api';
 import { CoinMaps, MarketsResponse } from '@/features/marketsData/api';
 import { VwatrResponse } from '@/features/vwatr/api';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { createSSRSafeStorage } from '@/utils/storage';
 import { create, StateCreator } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 import { withDevtools } from './storeHelpers';
@@ -74,7 +84,9 @@ export const useLatestStore = create<LatestState>()(
     withDevtools(latestStateCreator, 'LatestStore') as StateCreator<LatestState>,
     {
       name: LATEST_STORAGE_KEY,
-      storage: createJSONStorage(() => AsyncStorage),
+      // Use SSR-safe storage wrapper to prevent "window is not defined" errors during SSR
+      // (Expo Router 6.0.17+ initializes stores during server-side rendering)
+      storage: createJSONStorage(() => createSSRSafeStorage()),
       onRehydrateStorage: () => {
         return (state, error) => {
           if (error) {

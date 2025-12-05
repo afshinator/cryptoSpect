@@ -1,10 +1,20 @@
 // stores/apiBlockingStore.ts
 // Store for managing API blocking per feature and global API switches
 
+/**
+ * NOTE: SSR-Safe Storage
+ * 
+ * This store uses createSSRSafeStorage() instead of AsyncStorage directly to handle
+ * server-side rendering (SSR) introduced in Expo Router 6.0.17+. During SSR, window
+ * is not available, so we use a wrapper that safely handles this case.
+ * 
+ * See: utils/storage.ts for implementation details.
+ */
+
 import { DataSource, FeatureId, getFeatureIds } from '@/constants/features';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { create, StateCreator } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
+import { createSSRSafeStorage } from '@/utils/storage';
 import { withDevtools } from './storeHelpers';
 
 /**
@@ -209,7 +219,9 @@ export const useApiBlockingStore = create<ApiBlockingState>()(
     withDevtools(apiBlockingStateCreator, 'ApiBlockingStore') as StateCreator<ApiBlockingState>,
     {
       name: API_BLOCKING_STORAGE_KEY,
-      storage: createJSONStorage(() => AsyncStorage),
+      // Use SSR-safe storage wrapper to prevent "window is not defined" errors during SSR
+      // (Expo Router 6.0.17+ initializes stores during server-side rendering)
+      storage: createJSONStorage(() => createSSRSafeStorage()),
       onRehydrateStorage: () => (state) => {
         if (state) {
           // Initialize preferences if they don't exist (migration from old versions)

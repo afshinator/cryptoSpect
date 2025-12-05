@@ -1,10 +1,20 @@
 // stores/prefsStore.ts
 
+/**
+ * NOTE: SSR-Safe Storage
+ * 
+ * This store uses createSSRSafeStorage() instead of AsyncStorage directly to handle
+ * server-side rendering (SSR) introduced in Expo Router 6.0.17+. During SSR, window
+ * is not available, so we use a wrapper that safely handles this case.
+ * 
+ * See: utils/storage.ts for implementation details.
+ */
+
 import { SupportedCurrency } from '@/constants/currency';
 import { DEFAULT_PREFS, PREFS_STORAGE_KEY } from '@/constants/stores';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { create, StateCreator } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
+import { createSSRSafeStorage } from '@/utils/storage';
 import { withDevtools } from './storeHelpers';
 
 export interface PrefsState {
@@ -49,7 +59,9 @@ export const usePrefsStore = create<PrefsState>()(
     withDevtools(prefsStateCreator, 'PrefsStore') as StateCreator<PrefsState>,
     {
       name: PREFS_STORAGE_KEY,
-      storage: createJSONStorage(() => AsyncStorage),
+      // Use SSR-safe storage wrapper to prevent "window is not defined" errors during SSR
+      // (Expo Router 6.0.17+ initializes stores during server-side rendering)
+      storage: createJSONStorage(() => createSSRSafeStorage()),
       onRehydrateStorage: () => (state) => {
         state?.setHasHydrated(true);
       },

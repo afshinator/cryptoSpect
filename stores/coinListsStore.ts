@@ -1,14 +1,24 @@
 // stores/coinListsStore.ts
 // Zustand store for managing coin lists with AsyncStorage persistence
 
+/**
+ * NOTE: SSR-Safe Storage
+ * 
+ * This store uses createSSRSafeStorage() instead of AsyncStorage directly to handle
+ * server-side rendering (SSR) introduced in Expo Router 6.0.17+. During SSR, window
+ * is not available, so we use a wrapper that safely handles this case.
+ * 
+ * See: utils/storage.ts for implementation details.
+ */
+
 import { COINLISTS_STORAGE_KEY } from '@/features/lists/constants';
 import { CoinList, CoinListItem, CoinListsState } from '@/features/lists/types';
 import { usePrefsStore } from '@/stores/prefsStore';
 import { withDevtools } from '@/stores/storeHelpers';
 import { log, TMI } from '@/utils/log';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { create, StateCreator } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
+import { createSSRSafeStorage } from '@/utils/storage';
 
 /**
  * Generate a unique list ID
@@ -245,7 +255,9 @@ export const useCoinListsStore = create<CoinListsState>()(
     withDevtools(coinListsStateCreator, 'CoinListsStore') as StateCreator<CoinListsState>,
     {
       name: COINLISTS_STORAGE_KEY,
-      storage: createJSONStorage(() => AsyncStorage),
+      // Use SSR-safe storage wrapper to prevent "window is not defined" errors during SSR
+      // (Expo Router 6.0.17+ initializes stores during server-side rendering)
+      storage: createJSONStorage(() => createSSRSafeStorage()),
       onRehydrateStorage: () => {
         return (state, error) => {
           if (error) {
