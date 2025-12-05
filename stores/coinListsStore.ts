@@ -64,9 +64,7 @@ const coinListsStateCreator: StateCreator<CoinListsState> = (set, get) => ({
       lists: [...state.lists, newList],
     }));
 
-    // Sync to storage
-    await get().syncToStorage();
-
+    // Zustand persist middleware handles storage automatically
     return newList;
   },
 
@@ -108,9 +106,7 @@ const coinListsStateCreator: StateCreator<CoinListsState> = (set, get) => ({
 
     set({ lists: newLists });
 
-    // Sync to storage
-    await get().syncToStorage();
-
+    // Zustand persist middleware handles storage automatically
     return updatedList;
   },
 
@@ -119,8 +115,7 @@ const coinListsStateCreator: StateCreator<CoinListsState> = (set, get) => ({
       lists: state.lists.filter((l) => l.id !== id),
     }));
 
-    // Sync to storage
-    await get().syncToStorage();
+    // Zustand persist middleware handles storage automatically
   },
 
   addCoinToList: async (listId: string, coin: Omit<CoinListItem, 'addedAt'>) => {
@@ -158,9 +153,7 @@ const coinListsStateCreator: StateCreator<CoinListsState> = (set, get) => ({
 
     set({ lists: newLists });
 
-    // Sync to storage
-    await get().syncToStorage();
-
+    // Zustand persist middleware handles storage automatically
     return updatedList;
   },
 
@@ -191,8 +184,7 @@ const coinListsStateCreator: StateCreator<CoinListsState> = (set, get) => ({
 
     set({ lists: newLists });
 
-    // Sync to storage
-    await get().syncToStorage();
+    // Zustand persist middleware handles storage automatically
   },
 
   updateCoinNotes: async (listId: string, coinId: string, notes: string) => {
@@ -227,8 +219,7 @@ const coinListsStateCreator: StateCreator<CoinListsState> = (set, get) => ({
 
     set({ lists: newLists });
 
-    // Sync to storage
-    await get().syncToStorage();
+    // Zustand persist middleware handles storage automatically
   },
 
   getList: (id: string) => {
@@ -246,16 +237,6 @@ const coinListsStateCreator: StateCreator<CoinListsState> = (set, get) => ({
   setHasHydrated: (state: boolean) => {
     set({ _hasHydrated: state });
   },
-
-  syncToStorage: async () => {
-    try {
-      const lists = get().lists;
-      await AsyncStorage.setItem(COINLISTS_STORAGE_KEY, JSON.stringify(lists));
-    } catch (error) {
-      console.error('Failed to sync coin lists to storage:', error);
-      // Don't throw - allow app to continue functioning
-    }
-  },
 });
 
 export const useCoinListsStore = create<CoinListsState>()(
@@ -264,14 +245,50 @@ export const useCoinListsStore = create<CoinListsState>()(
     {
       name: COINLISTS_STORAGE_KEY,
       storage: createJSONStorage(() => AsyncStorage),
-      onRehydrateStorage: () => (state) => {
-        state?.setHasHydrated(true);
+      onRehydrateStorage: () => {
+        console.log('🔄 CoinListsStore: Starting rehydration...');
+        return (state, error) => {
+          if (error) {
+            console.error('❌ CoinListsStore: Rehydration error:', error);
+          } else {
+            console.log('✅ CoinListsStore: Rehydrated from storage');
+            console.log('📦 Full state object:', JSON.stringify(state, null, 2));
+            console.log('📋 Lists array:', state?.lists);
+            console.log('📊 Lists count:', state?.lists?.length || 0);
+            console.log('🔝 Top20List exists:', state?.top20List !== null);
+            console.log('💧 Has hydrated flag:', state?._hasHydrated);
+          }
+          state?.setHasHydrated(true);
+        };
       },
       partialize: (state) => {
         const { _hasHydrated, top20List, ...rest } = state;
+        console.log('💾 CoinListsStore: Partializing state for storage');
+        console.log('📦 What will be saved:', JSON.stringify(rest, null, 2));
+        console.log('📋 Lists to save:', rest.lists);
+        console.log('📊 Lists count to save:', rest.lists?.length || 0);
         return rest;
       },
     }
   )
 );
+
+// Log all state changes
+if (__DEV__) {
+  useCoinListsStore.subscribe((state, prevState) => {
+    console.log('🔄 CoinListsStore: State changed');
+    console.log('📦 Current state:', {
+      listsCount: state.lists.length,
+      lists: state.lists.map(l => ({ id: l.id, name: l.name, coinsCount: l.coins.length })),
+      top20ListExists: state.top20List !== null,
+      hasHydrated: state._hasHydrated,
+    });
+    console.log('📦 Previous state:', {
+      listsCount: prevState.lists.length,
+      lists: prevState.lists.map(l => ({ id: l.id, name: l.name, coinsCount: l.coins.length })),
+      top20ListExists: prevState.top20List !== null,
+      hasHydrated: prevState._hasHydrated,
+    });
+  });
+}
 

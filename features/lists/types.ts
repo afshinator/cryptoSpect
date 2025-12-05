@@ -77,7 +77,5 @@ export interface CoinListsState {
   setTop20List: (list: CoinList | null) => void;
   /** Set hydration state */
   setHasHydrated: (state: boolean) => void;
-  /** Sync in-memory state to AsyncStorage */
-  syncToStorage: () => Promise<void>;
 }
 
