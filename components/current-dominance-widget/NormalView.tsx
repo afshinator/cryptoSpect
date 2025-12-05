@@ -172,11 +172,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: Spacing.xs,
-    // marginBottom: Spacing.md,
-    // paddingTop: Spacing.md,
-    borderTopWidth: 0.2,
-    borderTopColor: Colors.light.tabIconDefault,
-    borderStyle:'dashed',
   },
   totalValue: {
     fontWeight: 'bold',

@@ -2,11 +2,12 @@ import { BorderedSection } from '@/components/bordered-section';
 import { ScreenContainer } from '@/components/ScreenContainer';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
-import { SupportedCurrency } from '@/constants/currency';
+import { CURRENCY_FLAG_URLS, SupportedCurrency } from '@/constants/currency';
 import { useThemeColor } from '@/hooks/use-theme-color';
 import { usePrefsStore } from '@/stores/prefsStore';
+import { Image } from 'expo-image';
 import { Link } from 'expo-router';
-import { StyleSheet, Switch, TouchableOpacity, View } from 'react-native';
+import { Platform, StyleSheet, Switch, TouchableOpacity, View } from 'react-native';
 
 export default function SettingsScreen() {
   const {
@@ -26,7 +27,32 @@ export default function SettingsScreen() {
   const switchActiveThumb = useThemeColor({}, 'highlightedText');
   const switchInactiveThumb = useThemeColor({}, 'buttonSecondary');
 
-  const commonCurrencies: SupportedCurrency[] = ['usd', 'eur', 'gbp', 'jpy', 'cny', 'cad', 'aud'];
+  // All supported currencies with their full names from currency.ts comments
+  const allCurrencies: SupportedCurrency[] = [
+    'usd', 'eur', 'gbp', 'jpy', 'cny', 'inr', 'aud', 'cad', 'ngn', 'try',
+    'brl', 'chf', 'hkd', 'krw', 'php', 'pkr', 'rub', 'zar',
+  ];
+
+  const currencyFullNames: Record<SupportedCurrency, string> = {
+    usd: 'United States Dollar',
+    eur: 'Euro (European Union)',
+    gbp: 'British Pound (United Kingdom)',
+    jpy: 'Japanese Yen',
+    cny: 'Chinese Yuan',
+    inr: 'Indian Rupee',
+    aud: 'Australian Dollar',
+    cad: 'Canadian Dollar',
+    ngn: 'Nigerian Naira',
+    try: 'Turkish Lira',
+    brl: 'Brazilian Real',
+    chf: 'Swiss Franc',
+    hkd: 'Hong Kong Dollar',
+    krw: 'South Korean Won',
+    php: 'Philippine Peso',
+    pkr: 'Pakistani Rupee',
+    rub: 'Russian Ruble',
+    zar: 'South African Rand',
+  };
 
   // Theme colors for buttons
   const buttonBorder = useThemeColor({}, 'border');
@@ -61,6 +87,24 @@ export default function SettingsScreen() {
         <ThemedText type="title" style={styles.title}>
           Settings
         </ThemedText>
+
+        {/* Compact Mode */}
+        <BorderedSection>
+          <View style={styles.switchRow}>
+            <ThemedText type="subtitle" style={styles.sectionTitle}>
+              Compact Mode
+            </ThemedText>
+            <Switch
+              value={compactMode}
+              onValueChange={setCompactMode}
+              trackColor={{ false: switchInactiveTrack, true: switchTintTrack }}
+              thumbColor={compactMode ? switchActiveThumb : switchInactiveThumb}
+            />
+          </View>
+          <ThemedText type="small" colorVariant="textSubtle">
+            Reduce spacing and padding for a more compact layout
+          </ThemedText>
+        </BorderedSection>
 
         {/* Light/Dark Mode */}
         <BorderedSection>
@@ -120,42 +164,51 @@ export default function SettingsScreen() {
             Currency
           </ThemedText>
           <View style={styles.buttonRow}>
-            {commonCurrencies.map((curr) => (
-              <TouchableOpacity
-                key={curr}
-                style={[
-                  dynamicStyles.button,
-                  currency === curr && dynamicStyles.buttonActive,
-                ]}
-                onPress={() => setCurrency(curr)}
-              >
-                <ThemedText
-                  type="defaultSemiBold"
-                  colorVariant={currency === curr ? 'text' : 'textSubtle'}
+            {allCurrencies.map((curr) => {
+              const flagUrl = CURRENCY_FLAG_URLS[curr];
+              return (
+                <TouchableOpacity
+                  key={curr}
+                  style={[
+                    dynamicStyles.button,
+                    currency === curr && dynamicStyles.buttonActive,
+                  ]}
+                  onPress={() => setCurrency(curr)}
                 >
-                  {curr.toUpperCase()}
-                </ThemedText>
-              </TouchableOpacity>
-            ))}
+                  {flagUrl && (
+                    <View style={[
+                      styles.flagBackground,
+                      Platform.OS === 'web' ? styles.flagBackgroundDesktop : styles.flagBackgroundMobile
+                    ]}>
+                      <Image
+                        source={{ uri: flagUrl }}
+                        style={[
+                          styles.flagImage,
+                          Platform.OS === 'web' ? styles.flagImageDesktop : styles.flagImageMobile
+                        ]}
+                        contentFit="contain"
+                      />
+                    </View>
+                  )}
+                  <View style={styles.buttonContent}>
+                    <ThemedText
+                      type="defaultSemiBold"
+                      colorVariant={currency === curr ? 'text' : 'textSubtle'}
+                    >
+                      {curr.toUpperCase()}
+                    </ThemedText>
+                    <ThemedText
+                      type="xsmall"
+                      colorVariant="textSubtle"
+                      style={styles.currencyFullName}
+                    >
+                      {currencyFullNames[curr]}
+                    </ThemedText>
+                  </View>
+                </TouchableOpacity>
+              );
+            })}
           </View>
-        </BorderedSection>
-
-        {/* Compact Mode */}
-        <BorderedSection>
-          <View style={styles.switchRow}>
-            <ThemedText type="subtitle" style={styles.sectionTitle}>
-              Compact Mode
-            </ThemedText>
-            <Switch
-              value={compactMode}
-              onValueChange={setCompactMode}
-              trackColor={{ false: switchInactiveTrack, true: switchTintTrack }}
-              thumbColor={compactMode ? switchActiveThumb : switchInactiveThumb}
-            />
-          </View>
-          <ThemedText type="small" colorVariant="textSubtle">
-            Reduce spacing and padding for a more compact layout
-          </ThemedText>
         </BorderedSection>
 
         {/* API Configuration Link */}
@@ -192,13 +245,15 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: 8,
+    width: '100%',
   },
   button: {
     paddingHorizontal: 16,
     paddingVertical: 8,
     borderRadius: 8,
     borderWidth: 1,
-    minWidth: 60,
+    minWidth: Platform.OS === 'web' ? 60 : 100,
+    flex: 1,
     alignItems: 'center',
   },
   buttonActive: {
@@ -213,5 +268,46 @@ const styles = StyleSheet.create({
   linkButton: {
     paddingVertical: 8,
     marginBottom: 8,
+  },
+  currencyFullName: {
+    marginTop: 2,
+    textAlign: 'center',
+  },
+  flagBackground: {
+    position: 'absolute',
+  },
+  flagBackgroundDesktop: {
+    bottom: 0,
+    left: 0,
+    right: 0,
+    height: '50%',
+    justifyContent: 'flex-end',
+    alignItems: 'center',
+  },
+  flagBackgroundMobile: {
+    top: 8,
+    right: 8,
+    width: 32,
+    height: 32,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  flagImage: {
+    // Base styles
+  },
+  flagImageDesktop: {
+    width: '100%',
+    height: '100%',
+    opacity: 0.15,
+  },
+  flagImageMobile: {
+    width: '100%',
+    height: '100%',
+    opacity: 1,
+  },
+  buttonContent: {
+    position: 'relative',
+    zIndex: 1,
+    alignItems: 'center',
   },
 });
