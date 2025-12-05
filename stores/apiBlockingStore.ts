@@ -205,9 +205,8 @@ const apiBlockingStateCreator: StateCreator<ApiBlockingState> = (set, get) => ({
 export const API_BLOCKING_STORAGE_KEY = 'apiBlocking';
 
 export const useApiBlockingStore = create<ApiBlockingState>()(
-  withDevtools(
   persist(
-    apiBlockingStateCreator,
+    withDevtools(apiBlockingStateCreator, 'ApiBlockingStore'),
     {
       name: API_BLOCKING_STORAGE_KEY,
       storage: createJSONStorage(() => AsyncStorage),
@@ -250,8 +249,6 @@ export const useApiBlockingStore = create<ApiBlockingState>()(
         return rest;
       },
     }
-    ),
-    'ApiBlockingStore'
   )
 );
 

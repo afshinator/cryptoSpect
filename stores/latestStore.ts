@@ -1,14 +1,18 @@
 // stores/latestStore.ts
 
+import { DEFAULT_LATEST } from '@/constants/stores';
 import { CurrentVolatilityResponse } from '@/features/currentVolatility/api';
 import { CurrentDominanceResponse } from '@/features/dominance/current/api';
+import { CoinMaps, MarketsResponse } from '@/features/marketsData/api';
 import { VwatrResponse } from '@/features/vwatr/api';
-import { MarketsResponse, CoinMaps } from '@/features/marketsData/api';
-import { DEFAULT_LATEST } from '@/constants/stores';
 import { create, StateCreator } from 'zustand';
 import { withDevtools } from './storeHelpers';
 
 export interface LatestState {
+  // NOTE: None of this state is persisted to AsyncStorage.
+  // This store is in-memory only and resets on app restart.
+  // All data is fetched fresh from APIs when needed.
+  
   currentVolatilityData: CurrentVolatilityResponse | null;
   currentDominanceData: CurrentDominanceResponse | null;
   vwatrData: VwatrResponse | null;

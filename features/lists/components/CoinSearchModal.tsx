@@ -1,25 +1,25 @@
 // features/lists/components/CoinSearchModal.tsx
 // Search modal for adding coins to a list
 
-import React, { useState, useEffect, useRef } from 'react';
+import { ThemedText } from '@/components/themed-text';
+import { ThemedView } from '@/components/themed-view';
+import { CoinGeckoMarketData } from '@/constants/coinGecko';
+import { BorderRadius, Spacing } from '@/constants/theme';
+import { useThemeColor } from '@/hooks/use-theme-color';
+import { useCoinListsStore } from '@/stores/coinListsStore';
+import { usePrefsStore } from '@/stores/prefsStore';
+import React, { useEffect, useRef, useState } from 'react';
 import {
+  Keyboard,
+  KeyboardAvoidingView,
   Modal,
   Platform,
   Pressable,
   StyleSheet,
   TextInput,
-  Keyboard,
-  KeyboardAvoidingView,
 } from 'react-native';
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { useCoinListsStore } from '../store';
-import { MODAL_FOCUS_DELAY_IOS_MS, MODAL_FOCUS_DELAY_ANDROID_MS, MAX_SEARCH_RESULTS } from '../constants';
-import { Spacing, BorderRadius } from '@/constants/theme';
-import { useThemeColor } from '@/hooks/use-theme-color';
-import { CoinGeckoMarketData } from '@/constants/coinGecko';
-import { getMockMarketData, MOCK_MARKET_DATA } from '../mockData';
-import { usePrefsStore } from '@/stores/prefsStore';
+import { MAX_SEARCH_RESULTS, MODAL_FOCUS_DELAY_ANDROID_MS, MODAL_FOCUS_DELAY_IOS_MS } from '../constants';
+import { MOCK_MARKET_DATA } from '../mockData';
 
 interface CoinSearchModalProps {
   visible: boolean;
@@ -34,7 +34,7 @@ interface SearchResult {
   symbol: string;
   name: string;
   marketData?: CoinGeckoMarketData;
-  priority?: number;
+  priority: number;
 }
 
 export function CoinSearchModal({

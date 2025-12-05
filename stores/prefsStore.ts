@@ -45,9 +45,8 @@ const prefsStateCreator: StateCreator<PrefsState> = (set) => ({
 });
 
 export const usePrefsStore = create<PrefsState>()(
-  withDevtools(
   persist(
-    prefsStateCreator,
+    withDevtools(prefsStateCreator, 'PrefsStore'),
     {
       name: PREFS_STORAGE_KEY,
       storage: createJSONStorage(() => AsyncStorage),
@@ -60,7 +59,5 @@ export const usePrefsStore = create<PrefsState>()(
         return rest;
       }
     }
-    ),
-    'PrefsStore'
   )
 );

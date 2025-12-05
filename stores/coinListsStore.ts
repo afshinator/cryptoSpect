@@ -1,13 +1,13 @@
-// features/lists/store.ts
+// stores/coinListsStore.ts
 // Zustand store for managing coin lists with AsyncStorage persistence
 
 import { usePrefsStore } from '@/stores/prefsStore';
 import { withDevtools } from '@/stores/storeHelpers';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { create } from 'zustand';
+import { create, StateCreator } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
-import { COINLISTS_STORAGE_KEY } from './constants';
-import { CoinList, CoinListItem, CoinListsState } from './types';
+import { COINLISTS_STORAGE_KEY } from '@/features/lists/constants';
+import { CoinList, CoinListItem, CoinListsState } from '@/features/lists/types';
 
 /**
  * Generate a unique list ID
@@ -259,22 +259,19 @@ const coinListsStateCreator: StateCreator<CoinListsState> = (set, get) => ({
 });
 
 export const useCoinListsStore = create<CoinListsState>()(
-  withDevtools(
-    persist(
-      coinListsStateCreator,
-      {
-        name: COINLISTS_STORAGE_KEY,
-        storage: createJSONStorage(() => AsyncStorage),
-        onRehydrateStorage: () => (state) => {
-          state?.setHasHydrated(true);
-        },
-        partialize: (state) => {
-          const { _hasHydrated, top20List, ...rest } = state;
-          return rest;
-        },
-      }
-    ),
-    'CoinListsStore'
+  persist(
+    withDevtools(coinListsStateCreator, 'CoinListsStore'),
+    {
+      name: COINLISTS_STORAGE_KEY,
+      storage: createJSONStorage(() => AsyncStorage),
+      onRehydrateStorage: () => (state) => {
+        state?.setHasHydrated(true);
+      },
+      partialize: (state) => {
+        const { _hasHydrated, top20List, ...rest } = state;
+        return rest;
+      },
+    }
   )
 );
 

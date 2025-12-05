@@ -11,7 +11,7 @@ import { Spacing, BorderRadius } from '@/constants/theme';
 import { getMockMarketData } from '@/features/lists/mockData';
 import { CoinGeckoMarketData } from '@/constants/coinGecko';
 import { useThemeColor } from '@/hooks/use-theme-color';
-import { useCoinListsStore } from '@/features/lists/store';
+import { useCoinListsStore } from '@/stores/coinListsStore';
 import { ModalDialog } from '@/components/ModalDialog';
 
 export default function CoinDetailScreen() {

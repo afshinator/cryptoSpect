@@ -16,7 +16,7 @@ import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { ScreenContainer } from '@/components/ScreenContainer';
 import { ModalDialog } from '@/components/ModalDialog';
-import { useCoinListsStore } from '@/features/lists/store';
+import { useCoinListsStore } from '@/stores/coinListsStore';
 import { generateCsv, downloadCsvFile, exportCsvFileMobile, parseCsv } from '@/features/lists/utils';
 import { Spacing, BorderRadius } from '@/constants/theme';
 import { useThemeColor } from '@/hooks/use-theme-color';
