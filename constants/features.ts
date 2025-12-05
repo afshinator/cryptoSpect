@@ -4,7 +4,7 @@
 /**
  * Feature identifier type
  */
-export type FeatureId = 'currentVolatility' | 'currentDominance' | 'vwatr';
+export type FeatureId = 'currentVolatility' | 'currentDominance' | 'vwatr' | 'markets';
 
 /**
  * Data source type for features
@@ -53,6 +53,13 @@ export const FEATURES: Record<FeatureId, FeatureConfig> = {
     description: 'Fetches and displays Volume-Weighted Average True Range (VWATR) volatility data for cryptocurrency assets',
     endpoints: ['CRYPTO_PROXY_VWATR'],
     supportsSecondarySource: false,
+  },
+  markets: {
+    id: 'markets',
+    name: 'Markets',
+    description: 'Fetches and displays cryptocurrency market data including prices, market caps, and volume',
+    endpoints: ['CRYPTO_PROXY_MARKETS', 'COINGECKO_COINS_MARKETS'],
+    supportsSecondarySource: true,
   },
 };
 

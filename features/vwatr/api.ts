@@ -2,7 +2,7 @@
 // Functions for fetching VWATR (Volume-Weighted Average True Range) data from Crypto Proxy API
 
 import { callFeatureEndpoint } from '../../utils/apiWrappers';
-import { ERR, log, LOG } from '../../utils/log';
+import { ERR, log, LOG, TMI } from '../../utils/log';
 
 const FEATURE_ID = 'vwatr' as const;
 
@@ -85,7 +85,7 @@ export async function fetchVwatr(
 
   if (result.success && result.data) {
     log('📊 VWATR data fetched successfully', LOG);
-    log(`📊 VWATR data: ${JSON.stringify(result.data)}`, LOG);
+    log(`📊 VWATR data: ${JSON.stringify(result.data)}`, TMI);
     // Add client-side timestamp when data is received
     return {
       ...result.data,

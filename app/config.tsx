@@ -150,6 +150,7 @@ export default function ConfigScreen() {
               currentVolatility: '⚡',
               currentDominance: '💪',
               vwatr: '📊',
+              markets: '💰',
             };
 
             return (

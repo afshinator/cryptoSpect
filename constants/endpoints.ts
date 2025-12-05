@@ -107,6 +107,16 @@ export const ENDPOINTS: Record<string, EndpointConfig> = {
       errorCount: 0,
     },
   },
+  CRYPTO_PROXY_MARKETS: {
+    id: 'crypto-proxy-markets',
+    url: `${CRYPTO_PROXY_BASE_URL}/api/markets`,
+    name: 'Crypto Proxy Markets',
+    enabled: true,
+    stats: {
+      callCount: 0,
+      errorCount: 0,
+    },
+  },
 };
 
 /**

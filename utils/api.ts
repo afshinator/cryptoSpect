@@ -121,12 +121,15 @@ export async function callEndpoint<T = any>(
     timeoutId = setTimeout(() => controller.abort(), timeout);
 
     // Make the API call (GET only)
+    // Note: Don't set Content-Type for GET requests as it triggers CORS preflight
+    // Content-Type is only needed for requests with a body (POST, PUT, etc.)
+    const fetchHeaders: Record<string, string> = { ...headers };
+    // Only add Content-Type if explicitly provided in headers, or if it's a non-GET request
+    // For GET requests, browsers handle this automatically and adding it causes CORS preflight
+    
     const response = await fetch(url, {
       method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-        ...headers,
-      },
+      headers: fetchHeaders,
       signal: controller.signal,
     });
 
@@ -167,6 +170,24 @@ export async function callEndpoint<T = any>(
     if (error.name === 'AbortError') {
       const errorMsg = `API call timeout after ${timeout}ms: ${endpointKey}`;
       log(errorMsg, ERR);
+      
+      if (endpoint.stats) {
+        endpoint.stats.errorCount++;
+        endpoint.stats.lastError = errorMsg;
+      }
+      
+      return {
+        data: null,
+        error: errorMsg,
+        status: null,
+        success: false,
+      };
+    }
+
+    // Handle CORS errors
+    if (error?.message?.includes('CORS') || error?.message?.includes('Access-Control-Allow-Origin')) {
+      const errorMsg = `CORS error: The backend API at ${endpoint.url} is not configured to allow requests from this origin. The backend needs to include 'Access-Control-Allow-Origin' header in the response.`;
+      log(`[${endpointKey}] ${errorMsg}`, ERR);
       
       if (endpoint.stats) {
         endpoint.stats.errorCount++;

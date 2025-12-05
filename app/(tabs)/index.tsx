@@ -14,6 +14,7 @@ import { fetchVwatr } from '@/features/vwatr/api';
 import { useLatestStore } from '@/stores/latestStore';
 import { usePrefsStore } from '@/stores/prefsStore';
 import { log, LOG, TMI } from '@/utils/log';
+import { fetchMarkets } from '@/utils/markets';
 import { Link } from 'expo-router';
 
 export default function HomeScreen() {
@@ -24,6 +25,8 @@ export default function HomeScreen() {
     setCurrentDominanceData,
     vwatrData,
     setVwatrData,
+    marketsData,
+    setMarketsData,
   } = useLatestStore();
   const { compactMode } = usePrefsStore();
 
@@ -31,6 +34,7 @@ export default function HomeScreen() {
   const volatilityFetchInProgress = useRef(false);
   const dominanceFetchInProgress = useRef(false);
   const vwatrFetchInProgress = useRef(false);
+  const marketsFetchInProgress = useRef(false);
 
   // Convert CurrentVolatilityResponse to VolatilityData format for widget
   const volatilityWidgetData = currentVolatilityData ? {
@@ -86,7 +90,33 @@ export default function HomeScreen() {
         vwatrFetchInProgress.current = false;
       });
     }
-  }, [currentVolatilityData, currentDominanceData, vwatrData]); // Removed setters - they're stable references
+
+    // Only fetch markets data if it's null and not already fetching (after everything else with 3 second delay)
+    if (marketsData === null && !marketsFetchInProgress.current) {
+      marketsFetchInProgress.current = true;
+      // Wait 3 seconds before making the markets call
+      setTimeout(() => {
+        fetchMarkets().then((data) => {
+          marketsFetchInProgress.current = false;
+          if (data) {
+            setMarketsData(data);
+            console.log('💰 Markets data:', data);
+            console.log('💰 Markets data count:', data.data.length);
+            console.log('💰 First 5 coins:', data.data.slice(0, 5).map(coin => ({
+              id: coin.id,
+              symbol: coin.symbol,
+              name: coin.name,
+              price: coin.current_price,
+              marketCap: coin.market_cap,
+            })));
+            log(`💰 Markets data stored: ${data.data.length} coins`, LOG);
+          }
+        }).catch(() => {
+          marketsFetchInProgress.current = false;
+        });
+      }, 3000);
+    }
+  }, [currentVolatilityData, currentDominanceData, vwatrData, marketsData]); // Removed setters - they're stable references
   return (
     <ParallaxScrollView
       headerBackgroundColor={{ light: '#2789aa', dark: '#151d2c' }}
