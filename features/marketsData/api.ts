@@ -46,6 +46,10 @@ export interface CoinMaps {
   idToSymbol: Record<string, string>;
   /** Map from symbol (e.g., "btc") to coin ID (e.g., "bitcoin") */
   symbolToId: Record<string, string>;
+  // --- Timestamp for consistency with other latestStore fields ---
+  /** Unix timestamp (milliseconds) of when this data was fetched and stored by the app */
+  fetchedAt: number;
+  // --- End timestamp ---
 }
 
 const FEATURE_ID = 'markets' as const;
@@ -53,9 +57,10 @@ const FEATURE_ID = 'markets' as const;
 /**
  * Builds coin ID and symbol mapping from markets data
  * @param marketsData Array of market data from the API
- * @returns Maps for idToSymbol and symbolToId
+ * @param fetchedAt Optional timestamp (milliseconds). If not provided, uses current time.
+ * @returns Maps for idToSymbol and symbolToId with fetchedAt timestamp
  */
-export function buildCoinMaps(marketsData: CoinGeckoMarketData[]): CoinMaps {
+export function buildCoinMaps(marketsData: CoinGeckoMarketData[], fetchedAt?: number): CoinMaps {
   const idToSymbol: Record<string, string> = {};
   const symbolToId: Record<string, string> = {};
 
@@ -74,7 +79,13 @@ export function buildCoinMaps(marketsData: CoinGeckoMarketData[]): CoinMaps {
     }
   });
 
-  return { idToSymbol, symbolToId };
+  // --- Timestamp for consistency with other latestStore fields ---
+  return { 
+    idToSymbol, 
+    symbolToId,
+    fetchedAt: fetchedAt || Date.now(),
+  };
+  // --- End timestamp ---
 }
 
 /**

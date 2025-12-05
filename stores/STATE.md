@@ -19,9 +19,12 @@
    - State: `lists` (user-created coin lists)
    - Excluded: `_hasHydrated`, `top20List`
 
-### In-Memory Only (Not Persisted)
+### Persisted to AsyncStorage
 
 4. **`latestStore`** (`stores/latestStore.ts`)
+   - Storage key: `'latest'`
    - State: `currentVolatilityData`, `currentDominanceData`, `vwatrData`, `marketsData`, `coinMaps`
-   - Note: Resets on app restart, data fetched fresh from APIs
+   - Excluded: `_hasHydrated`
+   - Note: All data fields have `fetchedAt` timestamps for refresh tracking
+   - Helper: `getFetchedAtTimestampsOfLatest()` retrieves all fetchedAt timestamps
 

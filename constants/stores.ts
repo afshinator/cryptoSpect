@@ -8,6 +8,7 @@ import { DEFAULT_CURRENCY } from './currency';
 
 // AsyncStorage keys
 export const PREFS_STORAGE_KEY = 'prefs';
+export const LATEST_STORAGE_KEY = 'latest';
 
 // Default preference values
 export const DEFAULT_PREFS = {

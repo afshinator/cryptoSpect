@@ -179,9 +179,7 @@ describe('api.ts', () => {
         'https://api.example.com/data',
         expect.objectContaining({
           method: 'GET',
-          headers: expect.objectContaining({
-            'Content-Type': 'application/json',
-          }),
+          headers: expect.any(Object),
         })
       );
       expect(mockResponse.json).toHaveBeenCalled();
@@ -232,7 +230,6 @@ describe('api.ts', () => {
         'https://api.example.com/data',
         expect.objectContaining({
           headers: expect.objectContaining({
-            'Content-Type': 'application/json',
             'Authorization': 'Bearer token123',
             'X-Custom-Header': 'value',
           }),

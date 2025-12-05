@@ -96,7 +96,7 @@ export default function HomeScreen() {
             log(`📈 Markets data stored: ${data.data.length} coins`, TMI);
             
             // Build and store coin maps (id to symbol, symbol to id)
-            const maps = buildCoinMaps(data.data);
+            const maps = buildCoinMaps(data.data, data.fetchedAt);
             setCoinMaps(maps);
             log(`📈 Coin maps built: ${Object.keys(maps.idToSymbol).length} entries`, TMI);
           }
