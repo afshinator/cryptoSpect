@@ -10,6 +10,8 @@ import { ThemedView } from '@/components/themed-view';
 import { VolatilityRankingATRP } from '@/components/volatility-ranking-atrp-chart';
 import { fetchCurrentVolatility } from '@/features/currentVolatility/api';
 import { fetchCurrentDominance } from '@/features/dominance/current/api';
+import { useCoinListsStore } from '@/features/lists/store';
+import { getTop20List } from '@/features/lists/top20List';
 import { buildCoinMaps, fetchMarkets } from '@/features/marketsData/api';
 import { fetchVwatr } from '@/features/vwatr/api';
 import { useLatestStore } from '@/stores/latestStore';
@@ -29,7 +31,8 @@ export default function HomeScreen() {
     setMarketsData,
     setCoinMaps,
   } = useLatestStore();
-  const { compactMode } = usePrefsStore();
+  const { compactMode, currency } = usePrefsStore();
+  const { setTop20List } = useCoinListsStore();
 
   // Use refs to track if fetches are in progress to prevent duplicate calls
   const volatilityFetchInProgress = useRef(false);
@@ -116,7 +119,21 @@ export default function HomeScreen() {
         vwatrFetchInProgress.current = false;
       });
     }
-  }, [currentVolatilityData, currentDominanceData, vwatrData, marketsData]); // Removed setters - they're stable references
+  }, [currentVolatilityData, currentDominanceData, vwatrData, marketsData, currency]); // Removed setters - they're stable references
+
+  // Rebuild top20 list when marketsData or currency changes
+  useEffect(() => {
+    if (marketsData) {
+      const top20List = getTop20List(marketsData, currency);
+      if (top20List) {
+        setTop20List(top20List);
+        log(`📜 Top 20 list updated: ${top20List.coins.length} coins`, TMI);
+      }
+    } else {
+      // Clear the list if marketsData is cleared
+      setTop20List(null);
+    }
+  }, [marketsData, currency, setTop20List]);
   return (
     <ParallaxScrollView
       headerBackgroundColor={{ light: '#2789aa', dark: '#151d2c' }}

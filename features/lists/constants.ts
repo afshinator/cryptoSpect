@@ -19,12 +19,6 @@ export const SEARCH_DEBOUNCE_MS = 300;
 /** Default currency for new coins (uses user preference from prefsStore) */
 export const DEFAULT_COIN_CURRENCY: SupportedCurrency = 'usd';
 
-/** Stablecoin symbols for badge display */
-export const STABLECOIN_SYMBOLS = new Set([
-  'USDT', 'USDC', 'DAI', 'BUSD', 'TUSD', 'USDP', 'USDD', 'GUSD', 'HUSD', 'USDX',
-  'FRAX', 'LUSD', 'USDE', 'PYUSD', 'FDUSD', 'EURC', 'USDC.e', 'USDT.e'
-]);
-
 /** CSV export headers */
 export const CSV_HEADERS = [
   'List Name',

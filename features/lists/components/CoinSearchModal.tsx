@@ -19,6 +19,7 @@ import { Spacing, BorderRadius } from '@/constants/theme';
 import { useThemeColor } from '@/hooks/use-theme-color';
 import { CoinGeckoMarketData } from '@/constants/coinGecko';
 import { getMockMarketData, MOCK_MARKET_DATA } from '../mockData';
+import { usePrefsStore } from '@/stores/prefsStore';
 
 interface CoinSearchModalProps {
   visible: boolean;
@@ -48,6 +49,7 @@ export function CoinSearchModal({
   const [isSearching, setIsSearching] = useState(false);
   const inputRef = useRef<TextInput>(null);
   const { addCoinToList } = useCoinListsStore();
+  const { currency } = usePrefsStore();
 
   const cardColor = useThemeColor({}, 'cardBackground');
   const borderColor = useThemeColor({}, 'border');
@@ -157,6 +159,7 @@ export function CoinSearchModal({
       coinId: coin.coinId,
       symbol: coin.symbol,
       name: coin.name,
+      vsCurrency: currency,
     });
 
     if (!('error' in result)) {

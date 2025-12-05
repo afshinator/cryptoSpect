@@ -128,3 +128,52 @@ export const STABLECOIN_IDS = [
  * Number of stablecoins in the dominance calculation
  */
 export const STABLECOIN_COUNT = STABLECOIN_IDS.length;
+
+/**
+ * Set of stablecoin symbols (uppercase) for filtering and badge display
+ * 
+ * This includes:
+ * - All symbols from the main stablecoins array
+ * - Additional common stablecoin symbols that may appear in market data
+ * 
+ * Use this for:
+ * - Filtering stablecoins from volatility rankings
+ * - Displaying stablecoin badges in lists
+ * - Any other symbol-based stablecoin detection
+ */
+export function getStablecoinSymbols(): Set<string> {
+  const symbols = new Set<string>();
+  
+  // Add all symbols from the main stablecoins array (uppercase)
+  stablecoins.forEach(coin => {
+    symbols.add(coin.symbol.toUpperCase());
+  });
+  
+  // Add additional stablecoin symbols that may appear in market data
+  // These are variants or additional stablecoins not in the main list
+  const additionalSymbols = [
+    'BUSD',    // Binance USD (largely deprecated but may still appear)
+    'USDP',    // Pax Dollar
+    'USDD',    // Decentralized USD
+    'HUSD',    // HUSD
+    'USDX',    // USDX
+    'FRAX',    // Frax
+    'LUSD',    // Liquity USD
+    'USDC.E',  // USDC on Ethereum (variant)
+    'USDT.E',  // USDT on Ethereum (variant)
+    'USD',     // Generic USD (for filtering)
+    'USDS',    // USDS
+  ];
+  
+  additionalSymbols.forEach(symbol => {
+    symbols.add(symbol.toUpperCase());
+  });
+  
+  return symbols;
+}
+
+/**
+ * Pre-computed set of stablecoin symbols for performance
+ * Use this when you need a Set and don't need to add custom symbols
+ */
+export const STABLECOIN_SYMBOLS = getStablecoinSymbols();

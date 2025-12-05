@@ -2,7 +2,7 @@
 // Main lists management screen
 
 import { useRouter } from 'expo-router';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   Alert,
   Platform,
@@ -10,12 +10,12 @@ import {
   StyleSheet,
   TextInput,
   View,
+  ActivityIndicator,
 } from 'react-native';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { ScreenContainer } from '@/components/ScreenContainer';
-import { AlertModal } from '@/components/AlertModal';
-import { ConfirmationModal } from '@/components/ConfirmationModal';
+import { ModalDialog } from '@/components/ModalDialog';
 import { useCoinListsStore } from '@/features/lists/store';
 import { generateCsv, downloadCsvFile, exportCsvFileMobile, parseCsv } from '@/features/lists/utils';
 import { Spacing, BorderRadius } from '@/constants/theme';
@@ -23,7 +23,7 @@ import { useThemeColor } from '@/hooks/use-theme-color';
 
 export default function ListsScreen() {
   const router = useRouter();
-  const { lists, createList, deleteList, _hasHydrated } = useCoinListsStore();
+  const { lists, createList, deleteList, _hasHydrated, top20List } = useCoinListsStore();
   const [isCreating, setIsCreating] = useState(false);
   const [newListName, setNewListName] = useState('');
   const [listToDelete, setListToDelete] = useState<string | null>(null);
@@ -222,18 +222,61 @@ export default function ListsScreen() {
           </ThemedView>
         )}
 
-        {lists.length === 0 ? (
-          <ThemedView style={styles.emptyState}>
-            <ThemedText type="subtitle" style={styles.emptyTitle}>
-              No lists yet
-            </ThemedText>
-            <ThemedText style={styles.emptyText} colorVariant="textSubtle">
-              Create your first list to start organizing coins
-            </ThemedText>
-          </ThemedView>
-        ) : (
-          <ThemedView style={styles.listsContainer}>
-            {lists.map((list) => (
+        <ThemedView style={styles.listsContainer}>
+          {/* Always show "Current top 20" list first */}
+          <Pressable
+            onPress={() => {
+              if (top20List) {
+                router.push(`/lists/${top20List.id}`);
+              }
+            }}
+            disabled={!top20List}
+            style={[
+              styles.listItem,
+              { backgroundColor: cardColor, borderColor },
+              !top20List && styles.listItemDisabled,
+            ]}
+          >
+            <ThemedView style={styles.listItemContent}>
+              <ThemedView style={styles.listItemHeader}>
+                <ThemedView style={styles.listNameRow}>
+                  <ThemedText type="subtitle" style={styles.listName}>
+                    Current top 20
+                  </ThemedText>
+                  {!top20List && (
+                    <ActivityIndicator
+                      size="small"
+                      color={tintColor}
+                      style={styles.spinner}
+                    />
+                  )}
+                </ThemedView>
+                <ThemedText type="small" colorVariant="textSubtle">
+                  {top20List ? (
+                    `${top20List.coins.length} ${top20List.coins.length === 1 ? 'coin' : 'coins'}`
+                  ) : (
+                    'Loading...'
+                  )}
+                </ThemedText>
+              </ThemedView>
+              <ThemedText type="small" colorVariant="textSubtle" style={styles.listNotes}>
+                Top 20 cryptocurrencies by market cap
+              </ThemedText>
+            </ThemedView>
+          </Pressable>
+
+          {/* User-created lists */}
+          {lists.length === 0 ? (
+            <ThemedView style={styles.emptyState}>
+              <ThemedText type="subtitle" style={styles.emptyTitle}>
+                No custom lists yet
+              </ThemedText>
+              <ThemedText style={styles.emptyText} colorVariant="textSubtle">
+                Create your first list to start organizing coins
+              </ThemedText>
+            </ThemedView>
+          ) : (
+            lists.map((list) => (
               <Pressable
                 key={list.id}
                 onPress={() => router.push(`/lists/${list.id}`)}
@@ -251,20 +294,20 @@ export default function ListsScreen() {
                   </ThemedView>
                   {list.notes && (
                     <ThemedText type="small" colorVariant="textSubtle" style={styles.listNotes}>
-                      {list.notes}
+                      {list.notes.length > 100 ? `${list.notes.substring(0, 100)}...` : list.notes}
                     </ThemedText>
                   )}
                   {/* TODO: Add coin icon preview */}
                 </ThemedView>
               </Pressable>
-            ))}
-          </ThemedView>
-        )}
+            ))
+          )}
+        </ThemedView>
 
-        <ConfirmationModal
+        <ModalDialog
           visible={listToDelete !== null}
+          onDismiss={() => setListToDelete(null)}
           onConfirm={() => listToDelete && handleDeleteList(listToDelete)}
-          onCancel={() => setListToDelete(null)}
           title="Delete List"
           message="Are you sure you want to delete this list? This action cannot be undone."
           confirmText="Delete"
@@ -272,7 +315,7 @@ export default function ListsScreen() {
           confirmStyle="danger"
         />
 
-        <AlertModal
+        <ModalDialog
           visible={alertModal.visible}
           onDismiss={() => setAlertModal({ ...alertModal, visible: false })}
           title={alertModal.title}
@@ -373,6 +416,18 @@ const styles = StyleSheet.create({
   },
   listName: {
     flex: 1,
+  },
+  listNameRow: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.sm,
+  },
+  spinner: {
+    marginLeft: Spacing.xs,
+  },
+  listItemDisabled: {
+    opacity: 0.6,
   },
   listNotes: {
     marginTop: Spacing.xs,

@@ -2,7 +2,7 @@
 // Utility functions for processing volatility data
 
 import { CRYPTO_SYMBOL_MAP } from '@/constants/cryptoSymbolsMap';
-import { stablecoins } from '@/constants/stablecoins';
+import { getStablecoinSymbols as getStablecoinSymbolsFromConstants } from '@/constants/stablecoins';
 import type { CoinMaps } from '@/features/marketsData/api';
 import type { CoinGeckoMarketData } from '@/constants/coinGecko';
 import type { RankedCoinItem, RankedDataResult, VolatilityData } from './types';
@@ -51,13 +51,12 @@ export function buildSymbolToName(
 
 /**
  * Gets the set of stablecoin symbols to filter out
+ * 
+ * This function delegates to the centralized getStablecoinSymbols() from '@/constants/stablecoins'
+ * to ensure all stablecoin definitions are in one place.
  */
 export function getStablecoinSymbols(): Set<string> {
-  const symbols = new Set(stablecoins.map(s => s.symbol.toUpperCase()));
-  // Add additional stablecoin symbols that should be filtered out
-  symbols.add('USD');
-  symbols.add('USDS');
-  return symbols;
+  return getStablecoinSymbolsFromConstants();
 }
 
 /**

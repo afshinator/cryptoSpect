@@ -13,6 +13,8 @@ export interface CoinListItem {
   symbol: string;
   /** Coin name (e.g., 'Bitcoin') */
   name: string;
+  /** Coin image URL from market data API */
+  image?: string;
   /** User-created notes specific to this coin in this list */
   notes?: string;
   /** Optional full market data object (can be refreshed) */
@@ -49,6 +51,8 @@ export interface CoinList {
 export interface CoinListsState {
   /** All coin lists */
   lists: CoinList[];
+  /** The "Current top 20" virtual list (built from marketsData, not persisted) */
+  top20List: CoinList | null;
   /** Whether the store has been hydrated from AsyncStorage */
   _hasHydrated: boolean;
   
@@ -69,6 +73,8 @@ export interface CoinListsState {
   getList: (id: string) => CoinList | undefined;
   /** Get all lists */
   getAllLists: () => CoinList[];
+  /** Set the top 20 list (called from homepage after marketsData is fetched) */
+  setTop20List: (list: CoinList | null) => void;
   /** Set hydration state */
   setHasHydrated: (state: boolean) => void;
   /** Sync in-memory state to AsyncStorage */

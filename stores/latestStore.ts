@@ -6,6 +6,7 @@ import { VwatrResponse } from '@/features/vwatr/api';
 import { MarketsResponse, CoinMaps } from '@/features/marketsData/api';
 import { DEFAULT_LATEST } from '@/constants/stores';
 import { create, StateCreator } from 'zustand';
+import { withDevtools } from './storeHelpers';
 
 export interface LatestState {
   currentVolatilityData: CurrentVolatilityResponse | null;
@@ -38,5 +39,7 @@ const latestStateCreator: StateCreator<LatestState> = (set) => ({
   setCoinMaps: (maps) => set({ coinMaps: maps }),
 });
 
-export const useLatestStore = create<LatestState>()(latestStateCreator);
+export const useLatestStore = create<LatestState>()(
+  withDevtools(latestStateCreator, 'LatestStore')
+);
 

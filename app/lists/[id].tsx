@@ -1,8 +1,7 @@
 // app/lists/[id].tsx
 // List detail screen
 
-import { AlertModal } from '@/components/AlertModal';
-import { ConfirmationModal } from '@/components/ConfirmationModal';
+import { ModalDialog } from '@/components/ModalDialog';
 import { ScreenContainer } from '@/components/ScreenContainer';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
@@ -10,8 +9,9 @@ import { BorderRadius, Spacing } from '@/constants/theme';
 import { CoinSearchModal } from '@/features/lists/components/CoinSearchModal';
 import { getMockMarketData } from '@/features/lists/mockData';
 import { useCoinListsStore } from '@/features/lists/store';
-import { CoinListItem } from '@/features/lists/types';
+import { TOP20_LIST_ID } from '@/features/lists/top20List';
 import { useThemeColor } from '@/hooks/use-theme-color';
+import { Image } from 'expo-image';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import {
@@ -27,15 +27,15 @@ import {
 export default function ListDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
-  const { getList, updateList, removeCoinFromList, updateCoinNotes } = useCoinListsStore();
-  const list = id ? getList(id) : undefined;
+  const { getList, updateList, removeCoinFromList, top20List } = useCoinListsStore();
+  
+  // Handle special "current-top-20" virtual list
+  const isTop20List = id === TOP20_LIST_ID;
+  
+  const list = isTop20List ? top20List : (id ? getList(id) : undefined);
 
-  const [isEditingName, setIsEditingName] = useState(false);
   const [isEditingNotes, setIsEditingNotes] = useState(false);
-  const [editedName, setEditedName] = useState('');
   const [editedNotes, setEditedNotes] = useState('');
-  const [editingCoinId, setEditingCoinId] = useState<string | null>(null);
-  const [editingCoinNotes, setEditingCoinNotes] = useState('');
   const [coinToRemove, setCoinToRemove] = useState<string | null>(null);
   const [isSearchModalVisible, setIsSearchModalVisible] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
@@ -59,29 +59,20 @@ export default function ListDetailScreen() {
     return (
       <ScreenContainer>
         <ThemedView style={styles.container}>
-          <ThemedText>List not found</ThemedText>
+          {isTop20List ? (
+            <>
+              <ThemedText type="subtitle">Loading market data...</ThemedText>
+              <ThemedText colorVariant="textSubtle" style={styles.loadingText}>
+                Market data is being fetched. Please wait.
+              </ThemedText>
+            </>
+          ) : (
+            <ThemedText>List not found</ThemedText>
+          )}
         </ThemedView>
       </ScreenContainer>
     );
   }
-
-  const handleUpdateName = async () => {
-    const result = await updateList(id, { name: editedName });
-    if ('error' in result) {
-      if (Platform.OS === 'web') {
-        Alert.alert('Error', result.error);
-      } else {
-        setAlertModal({
-          visible: true,
-          title: 'Error',
-          message: result.error,
-        });
-      }
-    } else {
-      setIsEditingName(false);
-      setEditedName('');
-    }
-  };
 
   const handleUpdateNotes = async () => {
     await updateList(id, { notes: editedNotes });
@@ -89,27 +80,9 @@ export default function ListDetailScreen() {
     setEditedNotes('');
   };
 
-  const handleStartEditName = () => {
-    setEditedName(list.name);
-    setIsEditingName(true);
-  };
-
   const handleStartEditNotes = () => {
     setEditedNotes(list.notes || '');
     setIsEditingNotes(true);
-  };
-
-  const handleStartEditCoinNotes = (coin: CoinListItem) => {
-    setEditingCoinId(coin.coinId);
-    setEditingCoinNotes(coin.notes || '');
-  };
-
-  const handleSaveCoinNotes = async () => {
-    if (editingCoinId) {
-      await updateCoinNotes(id, editingCoinId, editingCoinNotes);
-      setEditingCoinId(null);
-      setEditingCoinNotes('');
-    }
   };
 
   const handleRemoveCoin = async () => {
@@ -155,55 +128,20 @@ export default function ListDetailScreen() {
         >
           {/* Header */}
           <ThemedView style={styles.header}>
-            {!isEditingName ? (
-              <Pressable onPress={handleStartEditName}>
-                <ThemedText type="title" style={styles.listName}>
-                  {list.name}
-                </ThemedText>
-              </Pressable>
-            ) : (
-              <ThemedView style={styles.editContainer}>
-                <TextInput
-                  style={[styles.editInput, { color: textColor, borderColor }]}
-                  value={editedName}
-                  onChangeText={setEditedName}
-                  autoFocus
-                  onSubmitEditing={handleUpdateName}
-                />
-                <ThemedView style={styles.editButtons}>
-                  <Pressable
-                    onPress={() => {
-                      setIsEditingName(false);
-                      setEditedName('');
-                    }}
-                    style={[styles.editButton, { borderColor }]}
-                  >
-                    <ThemedText type="small">Cancel</ThemedText>
-                  </Pressable>
-                  <Pressable
-                    onPress={handleUpdateName}
-                    style={[styles.editButton, { backgroundColor: tintColor }]}
-                  >
-                    <ThemedText type="small" style={{ color: highlightedText }}>
-                      Save
-                    </ThemedText>
-                  </Pressable>
-                </ThemedView>
-              </ThemedView>
-            )}
-
             <ThemedText type="small" colorVariant="textSubtle">
               {list.coins.length} {list.coins.length === 1 ? 'coin' : 'coins'}
             </ThemedText>
 
             {!isEditingNotes ? (
-              <Pressable onPress={handleStartEditNotes}>
+              <Pressable onPress={isTop20List ? undefined : handleStartEditNotes} disabled={isTop20List}>
                 {list.notes ? (
                   <ThemedText style={styles.listNotes}>{list.notes}</ThemedText>
                 ) : (
-                  <ThemedText style={styles.listNotesPlaceholder} colorVariant="textSubtle">
-                    Tap to add notes...
-                  </ThemedText>
+                  !isTop20List && (
+                    <ThemedText style={styles.listNotesPlaceholder} colorVariant="textSubtle">
+                      Tap to add notes...
+                    </ThemedText>
+                  )
                 )}
               </Pressable>
             ) : (
@@ -244,15 +182,17 @@ export default function ListDetailScreen() {
             )}
           </ThemedView>
 
-          {/* Add Coin Button */}
-          <Pressable
-            onPress={() => setIsSearchModalVisible(true)}
-            style={[styles.addButton, { backgroundColor: tintColor }]}
-          >
-            <ThemedText type="defaultSemiBold" style={{ color: highlightedText }}>
-              + Add Coin
-            </ThemedText>
-          </Pressable>
+          {/* Add Coin Button - hidden for top 20 list */}
+          {!isTop20List && (
+            <Pressable
+              onPress={() => setIsSearchModalVisible(true)}
+              style={[styles.addButton, { backgroundColor: tintColor }]}
+            >
+              <ThemedText type="defaultSemiBold" style={{ color: highlightedText }}>
+                + Add Coin
+              </ThemedText>
+            </Pressable>
+          )}
 
           {/* Coins List */}
           {list.coins.length === 0 ? (
@@ -268,7 +208,6 @@ export default function ListDetailScreen() {
             <ThemedView style={styles.coinsContainer}>
               {list.coins.map((coin) => {
                 const marketData = getMockMarketData(coin.coinId);
-                const isEditing = editingCoinId === coin.coinId;
 
                 return (
                   <ThemedView
@@ -276,13 +215,21 @@ export default function ListDetailScreen() {
                     style={[styles.coinItem, { backgroundColor: cardColor, borderColor }]}
                   >
                     <Pressable
-                      onPress={() => router.push(`/coin/${coin.coinId}`)}
+                      onPress={() => router.push(`/lists/${id}/coin/${coin.coinId}`)}
                       style={styles.coinContent}
                     >
                       {/* Coin Image */}
-                      {marketData?.image && (
+                      {coin.image ? (
                         <ThemedView style={styles.coinImageContainer}>
-                          {/* TODO: Use Image component */}
+                          <Image
+                            source={{ uri: coin.image }}
+                            style={styles.coinImage}
+                            contentFit="contain"
+                            transition={200}
+                          />
+                        </ThemedView>
+                      ) : (
+                        <ThemedView style={styles.coinImageContainer}>
                           <ThemedView style={[styles.coinImagePlaceholder, { backgroundColor: inputBackground }]}>
                             <ThemedText type="small">{coin.symbol}</ThemedText>
                           </ThemedView>
@@ -317,69 +264,19 @@ export default function ListDetailScreen() {
                             {formatPercentage(marketData?.price_change_percentage_24h)}
                           </ThemedText>
                         </ThemedView>
-
-                        {/* Coin Notes */}
-                        {!isEditing ? (
-                          <Pressable onPress={() => handleStartEditCoinNotes(coin)}>
-                            {coin.notes ? (
-                              <ThemedText type="small" colorVariant="textSubtle" style={styles.coinNotes}>
-                                {coin.notes}
-                              </ThemedText>
-                            ) : (
-                              <ThemedText
-                                type="small"
-                                colorVariant="textSubtle"
-                                style={styles.coinNotesPlaceholder}
-                              >
-                                Tap to add notes...
-                              </ThemedText>
-                            )}
-                          </Pressable>
-                        ) : (
-                          <ThemedView style={styles.editCoinNotesContainer}>
-                            <TextInput
-                              style={[
-                                styles.editInput,
-                                { color: textColor, borderColor },
-                              ]}
-                              value={editingCoinNotes}
-                              onChangeText={setEditingCoinNotes}
-                              autoFocus
-                              placeholder="Coin notes..."
-                              placeholderTextColor={textSubtle}
-                            />
-                            <ThemedView style={styles.editButtons}>
-                              <Pressable
-                                onPress={() => {
-                                  setEditingCoinId(null);
-                                  setEditingCoinNotes('');
-                                }}
-                                style={[styles.editButton, { borderColor }]}
-                              >
-                                <ThemedText type="small">Cancel</ThemedText>
-                              </Pressable>
-                              <Pressable
-                                onPress={handleSaveCoinNotes}
-                                style={[styles.editButton, { backgroundColor: tintColor }]}
-                              >
-                                <ThemedText type="small" style={{ color: highlightedText }}>
-                                  Save
-                                </ThemedText>
-                              </Pressable>
-                            </ThemedView>
-                          </ThemedView>
-                        )}
                       </ThemedView>
 
-                      {/* Remove Button */}
-                      <Pressable
-                        onPress={() => setCoinToRemove(coin.coinId)}
-                        style={[styles.removeButton, { borderColor }]}
-                      >
-                        <ThemedText type="small" colorVariant="error">
-                          Remove
-                        </ThemedText>
-                      </Pressable>
+                      {/* Remove Button - hidden for top 20 list */}
+                      {!isTop20List && (
+                        <Pressable
+                          onPress={() => setCoinToRemove(coin.coinId)}
+                          style={[styles.removeButton, { borderColor }]}
+                        >
+                          <ThemedText type="small" colorVariant="error">
+                            Remove
+                          </ThemedText>
+                        </Pressable>
+                      )}
                     </Pressable>
                   </ThemedView>
                 );
@@ -389,10 +286,10 @@ export default function ListDetailScreen() {
         </ScrollView>
 
         {/* Modals */}
-        <ConfirmationModal
+        <ModalDialog
           visible={coinToRemove !== null}
+          onDismiss={() => setCoinToRemove(null)}
           onConfirm={handleRemoveCoin}
-          onCancel={() => setCoinToRemove(null)}
           title="Remove Coin"
           message="Are you sure you want to remove this coin from the list?"
           confirmText="Remove"
@@ -408,7 +305,7 @@ export default function ListDetailScreen() {
           listId={id}
         />
 
-        <AlertModal
+        <ModalDialog
           visible={alertModal.visible}
           onDismiss={() => setAlertModal({ ...alertModal, visible: false })}
           title={alertModal.title}
@@ -475,6 +372,9 @@ const styles = StyleSheet.create({
   emptyText: {
     marginTop: Spacing.sm,
   },
+  loadingText: {
+    marginTop: Spacing.md,
+  },
   coinsContainer: {
     gap: Spacing.md,
   },
@@ -491,6 +391,11 @@ const styles = StyleSheet.create({
   coinImageContainer: {
     width: 48,
     height: 48,
+  },
+  coinImage: {
+    width: 48,
+    height: 48,
+    borderRadius: BorderRadius.md,
   },
   coinImagePlaceholder: {
     width: 48,
@@ -516,17 +421,6 @@ const styles = StyleSheet.create({
   },
   priceChange: {
     fontWeight: '600',
-  },
-  coinNotes: {
-    marginTop: Spacing.xs,
-  },
-  coinNotesPlaceholder: {
-    marginTop: Spacing.xs,
-    fontStyle: 'italic',
-  },
-  editCoinNotesContainer: {
-    marginTop: Spacing.xs,
-    gap: Spacing.sm,
   },
   removeButton: {
     paddingHorizontal: Spacing.sm,

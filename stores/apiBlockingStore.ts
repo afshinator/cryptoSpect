@@ -3,8 +3,9 @@
 
 import { DataSource, FeatureId, getFeatureIds } from '@/constants/features';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { create, StateCreator } from 'zustand';
+import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
+import { withDevtools } from './storeHelpers';
 
 /**
  * Blocking state for a feature's data sources
@@ -204,6 +205,7 @@ const apiBlockingStateCreator: StateCreator<ApiBlockingState> = (set, get) => ({
 export const API_BLOCKING_STORAGE_KEY = 'apiBlocking';
 
 export const useApiBlockingStore = create<ApiBlockingState>()(
+  withDevtools(
   persist(
     apiBlockingStateCreator,
     {
@@ -248,6 +250,8 @@ export const useApiBlockingStore = create<ApiBlockingState>()(
         return rest;
       },
     }
+    ),
+    'ApiBlockingStore'
   )
 );
 
