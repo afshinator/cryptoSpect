@@ -61,7 +61,7 @@ export function AlertModal({
               { backgroundColor: buttonBgColor, borderColor: buttonBorderColor },
             ]}
           >
-            <ThemedText type="bodySemibold" style={{ color: "#fff" }}>
+            <ThemedText type="defaultSemiBold" style={{ color: "#fff" }}>
               {buttonText}
             </ThemedText>
           </Pressable>

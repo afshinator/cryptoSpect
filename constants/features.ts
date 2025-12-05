@@ -4,7 +4,7 @@
 /**
  * Feature identifier type
  */
-export type FeatureId = 'currentVolatility' | 'currentDominance' | 'vwatr' | 'markets';
+export type FeatureId = 'currentVolatility' | 'currentDominance' | 'vwatr' | 'markets' | 'coinlists';
 
 /**
  * Data source type for features
@@ -66,6 +66,14 @@ export const FEATURES: Record<FeatureId, FeatureConfig> = {
     endpoints: ['CRYPTO_PROXY_MARKETS', 'COINGECKO_COINS_MARKETS'],
     supportsSecondarySource: true,
     emoji: '📈',
+  },
+  coinlists: {
+    id: 'coinlists',
+    name: 'Coin Lists',
+    description: 'Create and manage custom lists of cryptocurrencies with notes and market data',
+    endpoints: ['CRYPTO_PROXY_MARKETS', 'COINGECKO_COINS_MARKETS', 'COINGECKO_SEARCH'],
+    supportsSecondarySource: true,
+    emoji: '📜',
   },
 };
 

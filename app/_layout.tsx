@@ -43,6 +43,8 @@ export default function RootLayout() {
     <ThemeProvider value={finalTheme}>
       <Stack>
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+        <Stack.Screen name="lists" options={{ headerShown: false }} />
+        <Stack.Screen name="coin" options={{ headerShown: false }} />
         <Stack.Screen name="modal" options={{ presentation: 'modal', title: 'Modal' }} />
         <Stack.Screen name="tests" options={{ headerShown: false }} />
         <Stack.Screen name="config" options={{ title: 'API Configuration' }} />
