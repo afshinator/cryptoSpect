@@ -11,6 +11,7 @@ import { getMockMarketData } from '@/features/lists/mockData';
 import { TOP20_LIST_ID } from '@/features/lists/top20List';
 import { useThemeColor } from '@/hooks/use-theme-color';
 import { useCoinListsStore } from '@/stores/coinListsStore';
+import { useLatestStore } from '@/stores/latestStore';
 import { Image } from 'expo-image';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useState } from 'react';
@@ -26,6 +27,7 @@ export default function ListDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
   const { updateList, removeCoinFromList, top20List, lists } = useCoinListsStore();
+  const { marketsData } = useLatestStore();
   
   // Handle special "current-top-20" virtual list
   const isTop20List = id === TOP20_LIST_ID;
@@ -282,6 +284,9 @@ export default function ListDetailScreen() {
             <ThemedView style={styles.coinsContainer}>
               {list.coins.map((coin) => {
                 const marketData = getMockMarketData(coin.coinId);
+                
+                // Get image from coin, or fallback to marketsData if available
+                const coinImage = coin.image || marketsData?.data.find(m => m.id === coin.coinId)?.image;
 
                 return (
                   <ThemedView
@@ -293,10 +298,10 @@ export default function ListDetailScreen() {
                       style={styles.coinContent}
                     >
                       {/* Coin Image */}
-                      {coin.image ? (
+                      {coinImage ? (
                         <ThemedView style={styles.coinImageContainer}>
                           <Image
-                            source={{ uri: coin.image }}
+                            source={{ uri: coinImage }}
                             style={styles.coinImage}
                             contentFit="contain"
                             transition={200}

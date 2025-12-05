@@ -159,6 +159,7 @@ export function CoinSearchModal({
       coinId: coin.coinId,
       symbol: coin.symbol,
       name: coin.name,
+      image: coin.marketData?.image,
       vsCurrency: currency,
     });
 

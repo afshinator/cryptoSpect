@@ -9,7 +9,7 @@ import { BorderRadius, Spacing } from '@/constants/theme';
 import { TOP20_LIST_ID } from '@/features/lists/top20List';
 import { useThemeColor } from '@/hooks/use-theme-color';
 import { useCoinListsStore } from '@/stores/coinListsStore';
-import { useLatestStore } from '@/stores/latestStore';
+import { useLatestStore, getFetchedAtTimestampsOfLatest } from '@/stores/latestStore';
 import { usePrefsStore } from '@/stores/prefsStore';
 import { Image } from 'expo-image';
 import { useLocalSearchParams, useRouter } from 'expo-router';
@@ -20,7 +20,8 @@ export default function ListCoinDetailScreen() {
   const { id: listId, coinId } = useLocalSearchParams<{ id: string; coinId: string }>();
   const router = useRouter();
   const { updateCoinNotes, top20List, lists } = useCoinListsStore();
-  const { marketsData } = useLatestStore();
+  const latestStore = useLatestStore();
+  const { marketsData } = latestStore;
   const { currency } = usePrefsStore();
   const [isEditingNotes, setIsEditingNotes] = useState(false);
   const [editingNotes, setEditingNotes] = useState('');
@@ -51,6 +52,12 @@ export default function ListCoinDetailScreen() {
     if (!coinId || !marketsData?.data) return null;
     return marketsData.data.find(c => c.id === coinId) || null;
   }, [coinId, marketsData]);
+
+  // Get coin image - prefer stored image, fallback to marketsData
+  const coinImage = useMemo(() => {
+    if (coin?.image) return coin.image;
+    return coinData?.image;
+  }, [coin?.image, coinData?.image]);
   
   const handleStartEditNotes = () => {
     setEditingNotes(coin?.notes || '');
@@ -100,15 +107,68 @@ export default function ListCoinDetailScreen() {
     return `${value >= 0 ? '+' : ''}${value.toFixed(2)}%`;
   };
 
+  const formatNumber = (value: number | null | undefined): string => {
+    if (value === null || value === undefined) return 'N/A';
+    return new Intl.NumberFormat('en-US', {
+      maximumFractionDigits: 0,
+    }).format(value);
+  };
+
+  const formatDate = (dateString: string | null | undefined): string => {
+    if (!dateString) return 'N/A';
+    try {
+      const date = new Date(dateString);
+      return new Intl.DateTimeFormat('en-US', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+      }).format(date);
+    } catch {
+      return 'N/A';
+    }
+  };
+
+  const formatTimestamp = (timestamp: number | null | undefined): string => {
+    if (!timestamp) return 'N/A';
+    try {
+      const date = new Date(timestamp);
+      return new Intl.DateTimeFormat('en-US', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+      }).format(date);
+    } catch {
+      return 'N/A';
+    }
+  };
+
+  // Get marketsData fetchedAt timestamp
+  const marketsDataFetchedAt = useMemo(() => {
+    const timestamps = getFetchedAtTimestampsOfLatest(latestStore);
+    return timestamps.marketsData;
+  }, [latestStore]);
+
   return (
     <ScreenContainer>
       <ScrollView>
         <ThemedView style={styles.container}>
+          {/* Last Updated */}
+          {marketsDataFetchedAt && (
+            <ThemedText type="small" colorVariant="textSubtle" style={styles.lastUpdated}>
+              Last Updated: {formatTimestamp(marketsDataFetchedAt)}
+            </ThemedText>
+          )}
+
           {/* Coin Header */}
           <ThemedView style={styles.header}>
-            {coin.image ? (
+            {coinImage ? (
               <Image
-                source={{ uri: coin.image }}
+                source={{ uri: coinImage }}
                 style={styles.coinImage}
                 contentFit="contain"
                 transition={200}
@@ -149,6 +209,19 @@ export default function ListCoinDetailScreen() {
                     {formatPercentage(coinData.price_change_percentage_24h)}
                   </ThemedText>
                 </ThemedView>
+                {coinData.price_change_24h !== null && coinData.price_change_24h !== undefined && (
+                  <ThemedView style={styles.infoRow}>
+                    <ThemedText>24h Change (Absolute):</ThemedText>
+                    <ThemedText
+                      type="defaultSemiBold"
+                      style={{
+                        color: (coinData.price_change_24h || 0) >= 0 ? successColor : errorColor,
+                      }}
+                    >
+                      {formatPrice(coinData.price_change_24h)}
+                    </ThemedText>
+                  </ThemedView>
+                )}
               </ThemedView>
 
               <ThemedView style={[styles.section, { backgroundColor: cardColor, borderColor }]}>
@@ -161,6 +234,33 @@ export default function ListCoinDetailScreen() {
                     {coinData.market_cap ? formatPrice(coinData.market_cap) : 'N/A'}
                   </ThemedText>
                 </ThemedView>
+                {coinData.market_cap_change_24h !== null && coinData.market_cap_change_24h !== undefined && (
+                  <ThemedView style={styles.infoRow}>
+                    <ThemedText>Market Cap Change (24h):</ThemedText>
+                    <ThemedText
+                      type="defaultSemiBold"
+                      style={{
+                        color: (coinData.market_cap_change_24h || 0) >= 0 ? successColor : errorColor,
+                      }}
+                    >
+                      {formatPrice(coinData.market_cap_change_24h)}
+                    </ThemedText>
+                  </ThemedView>
+                )}
+                {coinData.market_cap_change_percentage_24h !== null && coinData.market_cap_change_percentage_24h !== undefined && (
+                  <ThemedView style={styles.infoRow}>
+                    <ThemedText>Market Cap Change % (24h):</ThemedText>
+                    <ThemedText
+                      type="defaultSemiBold"
+                      style={{
+                        color:
+                          (coinData.market_cap_change_percentage_24h || 0) >= 0 ? successColor : errorColor,
+                      }}
+                    >
+                      {formatPercentage(coinData.market_cap_change_percentage_24h)}
+                    </ThemedText>
+                  </ThemedView>
+                )}
                 <ThemedView style={styles.infoRow}>
                   <ThemedText>Market Cap Rank:</ThemedText>
                   <ThemedText type="defaultSemiBold">
@@ -173,6 +273,44 @@ export default function ListCoinDetailScreen() {
                     {coinData.total_volume ? formatPrice(coinData.total_volume) : 'N/A'}
                   </ThemedText>
                 </ThemedView>
+                {coinData.fully_diluted_valuation !== null && coinData.fully_diluted_valuation !== undefined && (
+                  <ThemedView style={styles.infoRow}>
+                    <ThemedText>Fully Diluted Valuation:</ThemedText>
+                    <ThemedText type="defaultSemiBold">
+                      {formatPrice(coinData.fully_diluted_valuation)}
+                    </ThemedText>
+                  </ThemedView>
+                )}
+              </ThemedView>
+
+              <ThemedView style={[styles.section, { backgroundColor: cardColor, borderColor }]}>
+                <ThemedText type="subtitle" style={styles.sectionTitle}>
+                  Supply Information
+                </ThemedText>
+                {coinData.circulating_supply !== null && coinData.circulating_supply !== undefined && (
+                  <ThemedView style={styles.infoRow}>
+                    <ThemedText>Circulating Supply:</ThemedText>
+                    <ThemedText type="defaultSemiBold">
+                      {formatNumber(coinData.circulating_supply)} {coin.symbol}
+                    </ThemedText>
+                  </ThemedView>
+                )}
+                {coinData.total_supply !== null && coinData.total_supply !== undefined && (
+                  <ThemedView style={styles.infoRow}>
+                    <ThemedText>Total Supply:</ThemedText>
+                    <ThemedText type="defaultSemiBold">
+                      {formatNumber(coinData.total_supply)} {coin.symbol}
+                    </ThemedText>
+                  </ThemedView>
+                )}
+                {coinData.max_supply !== null && coinData.max_supply !== undefined && (
+                  <ThemedView style={styles.infoRow}>
+                    <ThemedText>Max Supply:</ThemedText>
+                    <ThemedText type="defaultSemiBold">
+                      {formatNumber(coinData.max_supply)} {coin.symbol}
+                    </ThemedText>
+                  </ThemedView>
+                )}
               </ThemedView>
 
               <ThemedView style={[styles.section, { backgroundColor: cardColor, borderColor }]}>
@@ -192,6 +330,87 @@ export default function ListCoinDetailScreen() {
                   </ThemedText>
                 </ThemedView>
               </ThemedView>
+
+              <ThemedView style={[styles.section, { backgroundColor: cardColor, borderColor }]}>
+                <ThemedText type="subtitle" style={styles.sectionTitle}>
+                  All-Time High
+                </ThemedText>
+                {coinData.ath !== null && coinData.ath !== undefined && (
+                  <>
+                    <ThemedView style={styles.infoRow}>
+                      <ThemedText>ATH Price:</ThemedText>
+                      <ThemedText type="defaultSemiBold">
+                        {formatPrice(coinData.ath)}
+                      </ThemedText>
+                    </ThemedView>
+                    {coinData.ath_change_percentage !== null && coinData.ath_change_percentage !== undefined && (
+                      <ThemedView style={styles.infoRow}>
+                        <ThemedText>From ATH:</ThemedText>
+                        <ThemedText
+                          type="defaultSemiBold"
+                          style={{
+                            color: (coinData.ath_change_percentage || 0) >= 0 ? successColor : errorColor,
+                          }}
+                        >
+                          {formatPercentage(coinData.ath_change_percentage)}
+                        </ThemedText>
+                      </ThemedView>
+                    )}
+                    {coinData.ath_date && (
+                      <ThemedView style={styles.infoRow}>
+                        <ThemedText>ATH Date:</ThemedText>
+                        <ThemedText type="defaultSemiBold">
+                          {formatDate(coinData.ath_date)}
+                        </ThemedText>
+                      </ThemedView>
+                    )}
+                  </>
+                )}
+                {(!coinData.ath || coinData.ath === null) && (
+                  <ThemedText colorVariant="textSubtle">No ATH data available</ThemedText>
+                )}
+              </ThemedView>
+
+              <ThemedView style={[styles.section, { backgroundColor: cardColor, borderColor }]}>
+                <ThemedText type="subtitle" style={styles.sectionTitle}>
+                  All-Time Low
+                </ThemedText>
+                {coinData.atl !== null && coinData.atl !== undefined && (
+                  <>
+                    <ThemedView style={styles.infoRow}>
+                      <ThemedText>ATL Price:</ThemedText>
+                      <ThemedText type="defaultSemiBold">
+                        {formatPrice(coinData.atl)}
+                      </ThemedText>
+                    </ThemedView>
+                    {coinData.atl_change_percentage !== null && coinData.atl_change_percentage !== undefined && (
+                      <ThemedView style={styles.infoRow}>
+                        <ThemedText>From ATL:</ThemedText>
+                        <ThemedText
+                          type="defaultSemiBold"
+                          style={{
+                            color: (coinData.atl_change_percentage || 0) >= 0 ? successColor : errorColor,
+                          }}
+                        >
+                          {formatPercentage(coinData.atl_change_percentage)}
+                        </ThemedText>
+                      </ThemedView>
+                    )}
+                    {coinData.atl_date && (
+                      <ThemedView style={styles.infoRow}>
+                        <ThemedText>ATL Date:</ThemedText>
+                        <ThemedText type="defaultSemiBold">
+                          {formatDate(coinData.atl_date)}
+                        </ThemedText>
+                      </ThemedView>
+                    )}
+                  </>
+                )}
+                {(!coinData.atl || coinData.atl === null) && (
+                  <ThemedText colorVariant="textSubtle">No ATL data available</ThemedText>
+                )}
+              </ThemedView>
+
             </>
           ) : (
             <ThemedView style={styles.loadingContainer}>
@@ -283,6 +502,10 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: Spacing.md,
     gap: Spacing.lg,
+  },
+  lastUpdated: {
+    marginBottom: Spacing.xs,
+    textAlign: 'right',
   },
   header: {
     alignItems: 'center',
